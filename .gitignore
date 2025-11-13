@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Environment variables
+.env
+.envrc
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Type checking
+.mypy_cache/
+
+# Logs
+*.log
+
+# Git worktrees
+.worktrees/
+
+# Database
+data/
+
+# Healthcheck status
+status.txt
+
+# Playwright MCP
+.playwright-mcp/
