@@ -1,0 +1,1 @@
+# All database CRUD operations are done with this method, other modules should never call db directly, always go through this module
