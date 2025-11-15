@@ -5,7 +5,6 @@ from fastapi.templating import Jinja2Templates
 from database_model import initialize_database, db
 from seed_data import seed_components
 from logger import logger
-import os
 
 app = FastAPI(title="Wheel Builder")
 
