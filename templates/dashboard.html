@@ -1,457 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wheel Builder - My Builds</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-        }
-        
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .navbar {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .wheel-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .wheel-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        }
-        
-        .wheel-card .card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            font-weight: 600;
-        }
-        
-        .stat-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        
-        .stat-badge.good {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .stat-badge.warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
-        .fab-button {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
-            color: white;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            font-size: 1.5rem;
-            transition: transform 0.2s;
-            z-index: 1000;
-        }
-        
-        .fab-button:hover {
-            transform: scale(1.1);
-        }
-        
-        .page-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #6c757d;
-        }
-        
-        .info-value {
-            color: var(--primary-color);
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-gear-fill"></i> Wheel Builder
-            </a>
-            <div>
-                <a href="config.html" class="btn btn-outline-light btn-sm me-2">
-                    <i class="bi bi-tools"></i> Configuration
-                </a>
-                <button class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-person-circle"></i> Profile
-                </button>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="container">
-            <h1 class="mb-0"><i class="bi bi-collection"></i> My Wheel Builds</h1>
-            <p class="mb-0 mt-2 opacity-75">Track and manage all your wheel building projects</p>
-        </div>
+{% block title %}My Wheel Builds - Wheel Builder{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; margin-bottom: 2rem;">
+    <div class="container">
+        <h1 class="mb-0"><i class="bi bi-collection"></i> My Wheel Builds</h1>
+        <p class="mb-0 mt-2 opacity-75">Track and manage all your wheel building projects</p>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <div class="container pb-5">
-        <!-- Stats Overview -->
-        <div class="row mb-4">
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h3 class="text-primary mb-0">12</h3>
-                        <small class="text-muted">Total Builds</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h3 class="text-success mb-0">9</h3>
-                        <small class="text-muted">Completed</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h3 class="text-warning mb-0">3</h3>
-                        <small class="text-muted">In Progress</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h3 class="text-info mb-0">36</h3>
-                        <small class="text-muted">Avg Spokes</small>
-                    </div>
+<div class="container pb-5">
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-primary mb-0">{{ stats.total }}</h3>
+                    <small class="text-muted">Total Builds</small>
                 </div>
             </div>
         </div>
-
-        <!-- Filter and Sort -->
-        <div class="row mb-3">
-            <div class="col-md-8">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search builds...">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-success mb-0">{{ stats.completed }}</h3>
+                    <small class="text-muted">Completed</small>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <select class="form-select">
-                    <option>Sort by: Most Recent</option>
-                    <option>Sort by: Name (A-Z)</option>
-                    <option>Sort by: Status</option>
-                    <option>Sort by: Spoke Count</option>
-                </select>
             </div>
         </div>
-
-        <!-- Wheel Cards Grid -->
-        <div class="row">
-            <!-- Card 1 -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card wheel-card" onclick="location.href='wheel_details.html'">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Commuter Primary - Rear</span>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item">
-                            <span class="info-label">Hub</span>
-                            <span class="info-value">Shimano Alfine SG-S700</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rim</span>
-                            <span class="info-value">Ryde Andra 30</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Spokes</span>
-                            <span class="info-value">36 (3-cross)</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Avg Tension</span>
-                            <span class="info-value">
-                                L: 96.11 kgf | R: 103.42 kgf
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="stat-badge good">
-                                <i class="bi bi-check-circle-fill"></i> Well Balanced
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Last updated: Nov 10, 2025
-                        </small>
-                    </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-warning mb-0">{{ stats.in_progress }}</h3>
+                    <small class="text-muted">In Progress</small>
                 </div>
             </div>
-
-            <!-- Card 2 -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card wheel-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Mountain Bike - Front</span>
-                            <span class="badge bg-warning text-dark">In Progress</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item">
-                            <span class="info-label">Hub</span>
-                            <span class="info-value">DT Swiss 350</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rim</span>
-                            <span class="info-value">DT Swiss XM 481</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Spokes</span>
-                            <span class="info-value">32 (3-cross)</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Avg Tension</span>
-                            <span class="info-value">
-                                L: 88.5 kgf | R: 92.3 kgf
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="stat-badge warning">
-                                <i class="bi bi-exclamation-triangle-fill"></i> Needs Truing
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Last updated: Nov 12, 2025
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card wheel-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Road Bike - Rear</span>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item">
-                            <span class="info-label">Hub</span>
-                            <span class="info-value">Shimano Ultegra</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rim</span>
-                            <span class="info-value">Mavic Open Pro</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Spokes</span>
-                            <span class="info-value">32 (3-cross)</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Avg Tension</span>
-                            <span class="info-value">
-                                L: 110.2 kgf | R: 115.8 kgf
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="stat-badge good">
-                                <i class="bi bi-check-circle-fill"></i> Well Balanced
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Last updated: Nov 8, 2025
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card wheel-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Gravel Bike - Front</span>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item">
-                            <span class="info-label">Hub</span>
-                            <span class="info-value">Hope Pro 4</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rim</span>
-                            <span class="info-value">Stan's Grail</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Spokes</span>
-                            <span class="info-value">28 (2-cross)</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Avg Tension</span>
-                            <span class="info-value">
-                                L: 95.6 kgf | R: 98.2 kgf
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="stat-badge good">
-                                <i class="bi bi-check-circle-fill"></i> Well Balanced
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Last updated: Nov 5, 2025
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 5 -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card wheel-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Track Bike - Rear</span>
-                            <span class="badge bg-warning text-dark">In Progress</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item">
-                            <span class="info-label">Hub</span>
-                            <span class="info-value">Phil Wood Track</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rim</span>
-                            <span class="info-value">H+Son Archetype</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Spokes</span>
-                            <span class="info-value">32 (3-cross)</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Avg Tension</span>
-                            <span class="info-value">
-                                Not yet measured
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="stat-badge warning">
-                                <i class="bi bi-hourglass-split"></i> Initial Build
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Last updated: Nov 13, 2025
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 6 -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card wheel-card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Touring - Rear</span>
-                            <span class="badge bg-success">Completed</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="info-item">
-                            <span class="info-label">Hub</span>
-                            <span class="info-value">SON Delux</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rim</span>
-                            <span class="info-value">Ryde Sputnik</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Spokes</span>
-                            <span class="info-value">36 (3-cross)</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Avg Tension</span>
-                            <span class="info-value">
-                                L: 102.3 kgf | R: 108.7 kgf
-                            </span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="stat-badge good">
-                                <i class="bi bi-check-circle-fill"></i> Well Balanced
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Last updated: Oct 28, 2025
-                        </small>
-                    </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-info mb-0">{{ stats.draft }}</h3>
+                    <small class="text-muted">Draft</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Floating Action Button -->
-    <button class="fab-button" onclick="alert('Create new wheel build - to be implemented')">
-        <i class="bi bi-plus-lg"></i>
-    </button>
+    <!-- Wheel Cards Grid -->
+    <div class="row" id="builds-grid">
+        {% if builds %}
+            {% for build in builds %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card wheel-card" onclick="location.href='/build/{{ build.id }}'" style="cursor: pointer; transition: transform 0.2s; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; font-weight: 600;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ build.name }}</span>
+                            <span class="badge bg-{% if build.status == 'completed' %}success{% elif build.status == 'in_progress' %}warning text-dark{% else %}secondary{% endif %}">
+                                {{ build.status|replace('_', ' ')|title }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e9ecef;">
+                            <span style="font-weight: 600; color: #6c757d;">Hub</span>
+                            <span style="color: var(--primary-color);">{{ build.hub_display or 'Not selected' }}</span>
+                        </div>
+                        <div class="info-item" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e9ecef;">
+                            <span style="font-weight: 600; color: #6c757d;">Rim</span>
+                            <span style="color: var(--primary-color);">{{ build.rim_display or 'Not selected' }}</span>
+                        </div>
+                        <div class="info-item" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e9ecef;">
+                            <span style="font-weight: 600; color: #6c757d;">Spokes</span>
+                            <span style="color: var(--primary-color);">{{ build.spoke_count or 'N/A' }} ({{ build.lacing_pattern or 'N/A' }})</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3"></i> Updated: {{ build.updated_at.strftime('%b %d, %Y') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No wheel builds yet. Click the + button to create your first build!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<!-- Floating Action Button -->
+<button class="fab-button" onclick="alert('Create new build - to be implemented')" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary-color), var(--success-color)); color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 1.5rem;">
+    <i class="bi bi-plus-lg"></i>
+</button>
+
+<style>
+.wheel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}
