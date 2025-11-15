@@ -1,524 +1,300 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wheel Details - Commuter Primary Rear</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-        }
-        
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .navbar {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .page-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .section-card {
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            border-radius: 8px;
-        }
-        
-        .section-card .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid var(--secondary-color);
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        
-        .tension-table {
-            font-size: 0.9rem;
-        }
-        
-        .tension-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border-bottom: 2px solid #dee2e6;
-        }
-        
-        .tension-table td {
-            vertical-align: middle;
-        }
-        
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .status-good {
-            background-color: var(--success-color);
-        }
-        
-        .status-warning {
-            background-color: var(--warning-color);
-        }
-        
-        .status-danger {
-            background-color: var(--danger-color);
-        }
-        
-        .stat-row {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .stat-row:last-child {
-            border-bottom: none;
-        }
-        
-        .stat-label {
-            font-weight: 600;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        .stat-value {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-        
-        .build-info-table td {
-            padding: 0.5rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .build-info-table td:first-child {
-            font-weight: 600;
-            color: #6c757d;
-            width: 40%;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 400px;
-        }
-        
-        .action-buttons {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            padding: 1rem 0;
-            border-top: 2px solid #e9ecef;
-            margin-top: 2rem;
-            z-index: 100;
-        }
-        
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 300px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="index.html">
-                <i class="bi bi-arrow-left"></i> Back to Builds
-            </a>
+{% extends "base.html" %}
+
+{% block title %}{{ build.name }} - Wheel Builder{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; margin-bottom: 2rem;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <button class="btn btn-outline-light btn-sm me-2">
-                    <i class="bi bi-printer"></i> Print
-                </button>
-                <button class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-download"></i> Export
-                </button>
+                <h1 class="mb-0"><i class="bi bi-gear-fill"></i> {{ build.name }}</h1>
+                <p class="mb-0 mt-2 opacity-75">Build Details and Specifications</p>
             </div>
-        </div>
-    </nav>
-
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-2">Commuter Primary - Rear</h1>
-                    <p class="mb-0 opacity-75">
-                        <i class="bi bi-calendar3"></i> Last updated: November 10, 2025
-                        <span class="ms-3"><i class="bi bi-person"></i> Built by: You</span>
-                    </p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <span class="badge bg-success fs-6 px-3 py-2">
-                        <i class="bi bi-check-circle-fill"></i> Completed
-                    </span>
-                </div>
+            <div class="mt-2 mt-md-0">
+                <span class="badge bg-{% if build.status == 'completed' %}success{% elif build.status == 'in_progress' %}warning text-dark{% else %}secondary{% endif %} fs-5">
+                    {{ build.status|replace('_', ' ')|title }}
+                </span>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <div class="container pb-5">
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-lg-8">
-                <!-- Tension Tables -->
-                <div class="section-card card">
-                    <div class="card-header">
-                        <i class="bi bi-table"></i> Spoke Tension Measurements
+<div class="container pb-5">
+    <!-- Build Information Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Build Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Name</label>
+                        <p class="mb-0">{{ build.name }}</p>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Left Side Table -->
-                            <div class="col-md-6">
-                                <h6 class="text-center mb-3" style="color: var(--secondary-color);">Left Side</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm tension-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Spoke No</th>
-                                                <th>TM Reading</th>
-                                                <th>Est Tension (KGF)</th>
-                                                <th>Range</th>
-                                                <th>±20%</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr><td>1</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>2</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>3</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>4</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>5</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>6</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>7</td><td>22</td><td>86</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>8</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>9</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>10</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>11</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>12</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>13</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>14</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>15</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>16</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>17</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>18</td><td>22</td><td>86</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Right Side Table -->
-                            <div class="col-md-6">
-                                <h6 class="text-center mb-3" style="color: #e74c3c;">Right Side</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm tension-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Spoke No</th>
-                                                <th>TM Reading</th>
-                                                <th>Est Tension (KGF)</th>
-                                                <th>Range</th>
-                                                <th>±20%</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr><td>1</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>2</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>3</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>4</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>5</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>6</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>7</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>8</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>9</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>10</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>11</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>12</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>13</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>14</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>15</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>16</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>17</td><td>23</td><td>96</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                            <tr><td>18</td><td>24</td><td>107</td><td><span class="status-indicator status-good"></span></td><td><span class="status-indicator status-good"></span></td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Status</label>
+                        <form method="POST" action="/build/{{ build.id }}/status" class="d-inline">
+                            <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                <option value="draft" {% if build.status == 'draft' %}selected{% endif %}>Draft</option>
+                                <option value="in_progress" {% if build.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="completed" {% if build.status == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </form>
                     </div>
                 </div>
-
-                <!-- Tension Chart -->
-                <div class="section-card card">
-                    <div class="card-header">
-                        <i class="bi bi-graph-up"></i> Tension Distribution Chart
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Created</label>
+                        <p class="mb-0">{{ build.created_at.strftime('%B %d, %Y at %I:%M %p') if build.created_at else 'N/A' }}</p>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="tensionChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Build Information -->
-                <div class="section-card card">
-                    <div class="card-header">
-                        <i class="bi bi-info-circle"></i> Build Information
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="mb-3">General Information</h6>
-                                <table class="table table-sm build-info-table">
-                                    <tr><td>Build Name</td><td>Commuter Primary - Rear</td></tr>
-                                    <tr><td>Spoke Type</td><td>Steel 2 mm straight gauge</td></tr>
-                                    <tr><td>Lacing</td><td>3-cross</td></tr>
-                                    <tr><td>Number of Spokes</td><td>36</td></tr>
-                                    <tr><td>Recommended Min ParkTool</td><td>19</td></tr>
-                                    <tr><td>Recommended Max ParkTool</td><td>24</td></tr>
-                                    <tr><td>Recommended Spoke Length L</td><td>282.42 mm</td></tr>
-                                    <tr><td>Actual Spoke Length L</td><td>282 mm</td></tr>
-                                    <tr><td>Recommended Spoke Length R</td><td>281.90 mm</td></tr>
-                                    <tr><td>Actual Spoke Length R</td><td>282 mm</td></tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="mb-3">Hub Specifications</h6>
-                                <table class="table table-sm build-info-table">
-                                    <tr><td>Make</td><td>Shimano</td></tr>
-                                    <tr><td>Model</td><td>Alfine SG-S700</td></tr>
-                                    <tr><td>Hub Width (OLD)</td><td>135 mm</td></tr>
-                                    <tr><td>Left Flange Diam (DL)</td><td>93 mm</td></tr>
-                                    <tr><td>Left Flange Offset (LFO)</td><td>38 mm</td></tr>
-                                    <tr><td>Right Flange Diam (DR)</td><td>93 mm</td></tr>
-                                    <tr><td>Right Flange Offset (RFO)</td><td>43.5 mm</td></tr>
-                                    <tr><td>Spoke Hole Diam</td><td>2.9 mm</td></tr>
-                                </table>
-                                
-                                <h6 class="mb-3 mt-4">Rim Specifications</h6>
-                                <table class="table table-sm build-info-table">
-                                    <tr><td>Make</td><td>Ryde</td></tr>
-                                    <tr><td>Model</td><td>Andra 30</td></tr>
-                                    <tr><td>Type</td><td>Symmetric</td></tr>
-                                    <tr><td>Effective Rim Diam (ERD)</td><td>605.4 mm</td></tr>
-                                    <tr><td>Offset Spoke Bed (OSB)</td><td>0 mm</td></tr>
-                                    <tr><td>Nipples</td><td>Brass 2 x 12</td></tr>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="alert alert-info mt-3" role="alert">
-                            <i class="bi bi-info-circle"></i> <small>All measurements are in mm and are based on this article from <a href="https://spokelengthcalculator.com" target="_blank">spokelengthcalculator.com</a></small>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted">Last Updated</label>
+                        <p class="mb-0">{{ build.updated_at.strftime('%B %d, %Y at %I:%M %p') if build.updated_at else 'N/A' }}</p>
                     </div>
                 </div>
             </div>
+            {% if build.comments %}
+            <div class="mt-3">
+                <label class="form-label fw-bold text-muted">Comments</label>
+                <p class="mb-0 text-wrap" style="white-space: pre-wrap;">{{ build.comments }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-            <!-- Right Column - Summary Stats -->
-            <div class="col-lg-4">
-                <div class="section-card card">
-                    <div class="card-header">
-                        <i class="bi bi-bar-chart"></i> Summary Statistics
-                    </div>
-                    <div class="card-body">
-                        <h6 class="mb-3" style="color: var(--secondary-color);">Left Side</h6>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">Average Spoke Tension (kgf)</span>
-                            <span class="stat-value">96.11</span>
+    <!-- Component Specifications Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0"><i class="bi bi-list-check"></i> Component Specifications</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3 bg-light">
+                        <h6 class="text-primary mb-3"><i class="bi bi-bullseye"></i> Hub</h6>
+                        {% if hub %}
+                        <div class="mb-2">
+                            <span class="text-muted">Make/Model:</span>
+                            <span class="float-end fw-bold">{{ hub.make }} {{ hub.model }}</span>
                         </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">Standard Deviation (kgf)</span>
-                            <span class="stat-value">5.11</span>
+                        <div class="mb-2">
+                            <span class="text-muted">Type:</span>
+                            <span class="float-end fw-bold">{{ hub.type|title }}</span>
                         </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">20% Upper Limit (kgf)</span>
-                            <span class="stat-value">115.33</span>
+                        <div class="mb-2">
+                            <span class="text-muted">OLD:</span>
+                            <span class="float-end fw-bold">{{ hub.old }}mm</span>
                         </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">TM-1 Reading at 20% Limit</span>
-                            <span class="stat-value">24.66</span>
+                        <div class="mb-2">
+                            <span class="text-muted">Left Flange Ø:</span>
+                            <span class="float-end fw-bold">{{ hub.left_flange_diameter }}mm</span>
                         </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">-20% Lower Limit (kgf)</span>
-                            <span class="stat-value">76.88</span>
+                        <div class="mb-2">
+                            <span class="text-muted">Right Flange Ø:</span>
+                            <span class="float-end fw-bold">{{ hub.right_flange_diameter }}mm</span>
                         </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">TM-1 Reading at -20% Limit</span>
-                            <span class="stat-value">20.92</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">Max Newtonmeter</span>
-                            <span class="stat-value">1050</span>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <h6 class="mb-3" style="color: #e74c3c;">Right Side</h6>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">Average Spoke Tension (kgf)</span>
-                            <span class="stat-value">103.42</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">Standard Deviation (kgf)</span>
-                            <span class="stat-value">5.43</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">20% Upper Limit (kgf)</span>
-                            <span class="stat-value">124.10</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">TM-1 Reading at 20% Limit</span>
-                            <span class="stat-value">25.30</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">-20% Lower Limit (kgf)</span>
-                            <span class="stat-value">82.73</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">TM-1 Reading at -20% Limit</span>
-                            <span class="stat-value">21.62</span>
-                        </div>
-                        <div class="stat-row d-flex justify-content-between">
-                            <span class="stat-label">Max Newtonmeter</span>
-                            <span class="stat-value">1050</span>
-                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
+                        {% endif %}
                     </div>
                 </div>
-
-                <!-- Quality Indicators -->
-                <div class="section-card card">
-                    <div class="card-header">
-                        <i class="bi bi-shield-check"></i> Quality Indicators
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="status-indicator status-good me-2" style="width: 16px; height: 16px;"></span>
-                            <span>All spokes within tension range</span>
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3 bg-light">
+                        <h6 class="text-primary mb-3"><i class="bi bi-circle"></i> Rim</h6>
+                        {% if rim %}
+                        <div class="mb-2">
+                            <span class="text-muted">Make/Model:</span>
+                            <span class="float-end fw-bold">{{ rim.make }} {{ rim.model }}</span>
                         </div>
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="status-indicator status-good me-2" style="width: 16px; height: 16px;"></span>
-                            <span>All spokes within ±20% limit</span>
+                        <div class="mb-2">
+                            <span class="text-muted">Type:</span>
+                            <span class="float-end fw-bold">{{ rim.type|title }}</span>
                         </div>
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="status-indicator status-good me-2" style="width: 16px; height: 16px;"></span>
-                            <span>Low standard deviation</span>
+                        <div class="mb-2">
+                            <span class="text-muted">Holes:</span>
+                            <span class="float-end fw-bold">{{ rim.holes }}</span>
                         </div>
-                        <div class="alert alert-success mb-0 mt-3" role="alert">
-                            <strong><i class="bi bi-check-circle-fill"></i> Excellent!</strong><br>
-                            This wheel is well-balanced and ready for use.
+                        <div class="mb-2">
+                            <span class="text-muted">ERD:</span>
+                            <span class="float-end fw-bold">{{ rim.erd }}mm</span>
                         </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ rim.material|title }}</span>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
+                        {% endif %}
                     </div>
                 </div>
-
-                <!-- Actions -->
-                <div class="section-card card">
-                    <div class="card-header">
-                        <i class="bi bi-tools"></i> Actions
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3 bg-light">
+                        <h6 class="text-primary mb-3"><i class="bi bi-slash-lg"></i> Spoke</h6>
+                        {% if spoke %}
+                        <div class="mb-2">
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ spoke.material|title }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Gauge:</span>
+                            <span class="float-end fw-bold">{{ spoke.gauge }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Length:</span>
+                            <span class="float-end fw-bold">{{ spoke.length }}mm</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Max Tension:</span>
+                            <span class="float-end fw-bold">{{ spoke.max_tension }} kgf</span>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
+                        {% endif %}
                     </div>
-                    <div class="card-body">
-                        <button class="btn btn-primary w-100 mb-2">
-                            <i class="bi bi-pencil"></i> Edit Build
-                        </button>
-                        <button class="btn btn-outline-primary w-100 mb-2">
-                            <i class="bi bi-plus-circle"></i> Add Tension Reading
-                        </button>
-                        <button class="btn btn-outline-secondary w-100 mb-2">
-                            <i class="bi bi-clipboard"></i> Duplicate Build
-                        </button>
-                        <button class="btn btn-outline-danger w-100">
-                            <i class="bi bi-trash"></i> Delete Build
-                        </button>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3 bg-light">
+                        <h6 class="text-primary mb-3"><i class="bi bi-nut"></i> Nipple</h6>
+                        {% if nipple %}
+                        <div class="mb-2">
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ nipple.material|title }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Diameter:</span>
+                            <span class="float-end fw-bold">{{ nipple.diameter }}mm</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Length:</span>
+                            <span class="float-end fw-bold">{{ nipple.length }}mm</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Color:</span>
+                            <span class="float-end fw-bold">{{ nipple.color|title }}</span>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="border rounded p-3 bg-light">
+                        <h6 class="text-primary mb-3"><i class="bi bi-asterisk"></i> Lacing Configuration</h6>
+                        <div class="mb-2">
+                            <span class="text-muted">Pattern:</span>
+                            <span class="float-end fw-bold">{{ build.lacing_pattern|replace('-', ' ')|title if build.lacing_pattern else 'Not set' }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Spoke Count:</span>
+                            <span class="float-end fw-bold">{{ build.spoke_count if build.spoke_count else 'Not set' }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Tension Distribution Radar Chart
-        const ctx = document.getElementById('tensionChart').getContext('2d');
-        
-        // Sample data for the chart - representing tension meter readings for each spoke
-        const leftData = [23, 23, 23, 23, 23, 23, 22, 23, 24, 23, 23, 23, 23, 23, 23, 23, 24, 22];
-        const rightData = [24, 23, 24, 23, 24, 23, 24, 24, 24, 23, 24, 24, 24, 24, 24, 23, 23, 24];
-        const labels = Array.from({length: 18}, (_, i) => (i + 1).toString());
-        
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Left',
-                        data: leftData,
-                        borderColor: 'rgb(52, 152, 219)',
-                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgb(52, 152, 219)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(52, 152, 219)'
-                    },
-                    {
-                        label: 'Right',
-                        data: rightData,
-                        borderColor: 'rgb(231, 76, 60)',
-                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgb(231, 76, 60)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(231, 76, 60)'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        min: 0,
-                        max: 25,
-                        ticks: {
-                            stepSize: 5
-                        },
-                        pointLabels: {
-                            font: {
-                                size: 11
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Tension Meter Reading Distribution',
-                        font: {
-                            size: 14
-                        }
-                    }
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+    <!-- Spoke Length Recommendations Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0"><i class="bi bi-calculator"></i> Spoke Length Recommendations</h5>
+        </div>
+        <div class="card-body">
+            {% if can_calculate %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3" style="border-left: 4px solid var(--secondary-color) !important;">
+                        <h6 class="text-secondary mb-3"><i class="bi bi-arrow-left"></i> Left Side</h6>
+                        <div class="mb-2">
+                            <span class="text-muted">Calculated Length:</span>
+                            <span class="float-end fw-bold fs-5 text-primary">{{ calculated_left }}mm</span>
+                        </div>
+                        {% if build.actual_spoke_length_left %}
+                        <div class="mb-2">
+                            <span class="text-muted">Actual Length Used:</span>
+                            <span class="float-end fw-bold text-success">{{ build.actual_spoke_length_left }}mm</span>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info alert-sm mb-0 mt-2">
+                            <small><i class="bi bi-info-circle"></i> No actual spoke length entered yet</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3" style="border-left: 4px solid var(--success-color) !important;">
+                        <h6 class="text-success mb-3"><i class="bi bi-arrow-right"></i> Right Side</h6>
+                        <div class="mb-2">
+                            <span class="text-muted">Calculated Length:</span>
+                            <span class="float-end fw-bold fs-5 text-primary">{{ calculated_right }}mm</span>
+                        </div>
+                        {% if build.actual_spoke_length_right %}
+                        <div class="mb-2">
+                            <span class="text-muted">Actual Length Used:</span>
+                            <span class="float-end fw-bold text-success">{{ build.actual_spoke_length_right }}mm</span>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info alert-sm mb-0 mt-2">
+                            <small><i class="bi bi-info-circle"></i> No actual spoke length entered yet</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-lightbulb"></i> <strong>Tip:</strong> These are calculated recommendations. Always verify with your spoke manufacturer's sizing chart and consider ordering spokes in 0.5mm increments.
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <h6><i class="bi bi-exclamation-triangle"></i> Cannot Calculate Spoke Length</h6>
+                <p class="mb-2">The following information is needed to calculate spoke length:</p>
+                <ul class="mb-0">
+                    {% for missing in missing_data %}
+                    <li>{{ missing|title }}</li>
+                    {% endfor %}
+                </ul>
+                <p class="mt-3 mb-0"><strong>Please edit this build to add the missing components.</strong></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tension Sessions Section (Placeholder) -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0"><i class="bi bi-activity"></i> Tension Sessions</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle"></i> Tension tracking feature coming soon. You'll be able to record and track spoke tension across multiple sessions.
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/build/{{ build.id }}/edit" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Edit Build
+        </a>
+        <form method="POST" action="/build/{{ build.id }}/delete" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this build? This action cannot be undone.');">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Delete Build
+            </button>
+        </form>
+        <a href="/" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<style>
+.alert-sm {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

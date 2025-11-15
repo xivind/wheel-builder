@@ -9,8 +9,11 @@ from logger import logger
 from database_manager import (
     get_all_wheel_builds, get_hubs_by_ids, get_rims_by_ids,
     get_all_hubs, get_all_rims, get_all_spokes, get_all_nipples,
-    create_wheel_build
+    create_wheel_build, get_wheel_build_by_id, get_hub_by_id,
+    get_rim_by_id, get_spoke_by_id, get_nipple_by_id,
+    update_wheel_build, delete_wheel_build
 )
+from business_logic import can_calculate_spoke_length, calculate_spoke_length
 
 app = FastAPI(title="Wheel Builder")
 
@@ -138,12 +141,94 @@ async def create_build(
 
         logger.info(f"Created wheel build: {name} (ID: {build.id})")
 
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url=f"/build/{build.id}", status_code=303)
     except Exception as e:
         logger.error(f"Error creating wheel build: {e}")
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error_message": "Unable to create wheel build. Please try again later."
+        }, status_code=500)
+
+@app.post("/build/{build_id}/status")
+async def update_build_status(build_id: str, status: str = Form(...)):
+    """Update build status."""
+    try:
+        success = update_wheel_build(build_id, status=status)
+        if not success:
+            logger.warning(f"Failed to update status for build {build_id}")
+
+        return RedirectResponse(url=f"/build/{build_id}", status_code=303)
+    except Exception as e:
+        logger.error(f"Error updating build status: {e}")
+        return RedirectResponse(url=f"/build/{build_id}", status_code=303)
+
+@app.post("/build/{build_id}/delete")
+async def delete_build(build_id: str):
+    """Delete a wheel build."""
+    try:
+        delete_wheel_build(build_id)
+        logger.info(f"Deleted build: {build_id}")
+        return RedirectResponse(url="/", status_code=303)
+    except Exception as e:
+        logger.error(f"Error deleting build: {e}")
+        return RedirectResponse(url="/", status_code=303)
+
+@app.get("/build/{build_id}", response_class=HTMLResponse)
+async def build_details(request: Request, build_id: str):
+    """Build details page showing full build information."""
+    try:
+        # Fetch the build
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Build not found."
+            }, status_code=404)
+
+        # Fetch related components
+        hub = get_hub_by_id(build.hub_id) if build.hub_id else None
+        rim = get_rim_by_id(build.rim_id) if build.rim_id else None
+        spoke = get_spoke_by_id(build.spoke_id) if build.spoke_id else None
+        nipple = get_nipple_by_id(build.nipple_id) if build.nipple_id else None
+
+        # Check if we can calculate spoke length
+        can_calc, missing = can_calculate_spoke_length(build)
+
+        calculated_left = None
+        calculated_right = None
+
+        if can_calc:
+            # Calculate spoke lengths for both sides
+            calculated_left = calculate_spoke_length(
+                hub, rim, spoke, nipple,
+                build.spoke_count,
+                build.lacing_pattern,
+                "left"
+            )
+            calculated_right = calculate_spoke_length(
+                hub, rim, spoke, nipple,
+                build.spoke_count,
+                build.lacing_pattern,
+                "right"
+            )
+
+        return templates.TemplateResponse("build_details.html", {
+            "request": request,
+            "build": build,
+            "hub": hub,
+            "rim": rim,
+            "spoke": spoke,
+            "nipple": nipple,
+            "can_calculate": can_calc,
+            "missing_data": missing,
+            "calculated_left": calculated_left,
+            "calculated_right": calculated_right
+        })
+    except Exception as e:
+        logger.error(f"Error loading build details: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to load build details. Please try again later."
         }, status_code=500)
 
 @app.get("/health")
