@@ -1,5 +1,6 @@
 # All database CRUD operations are done with this method, other modules should never call db directly, always go through this module
 
+from datetime import datetime
 from database_model import Hub, Rim, Spoke, Nipple, WheelBuild, TensionSession, TensionReading
 from utils import generate_uuid
 from logger import logger
@@ -206,3 +207,139 @@ def delete_nipple(nipple_id):
 def get_builds_using_nipple(nipple_id):
     """Get all wheel builds using this nipple."""
     return list(WheelBuild.select().where(WheelBuild.nipple_id == nipple_id))
+
+# Wheel Build operations
+
+def create_wheel_build(name, status='draft', hub_id=None, rim_id=None, spoke_id=None,
+                       nipple_id=None, lacing_pattern=None, spoke_count=None,
+                       actual_spoke_length_left=None, actual_spoke_length_right=None, comments=None):
+    """Create a new wheel build."""
+    build_id = generate_uuid()
+    build = WheelBuild.create(
+        id=build_id,
+        name=name,
+        status=status,
+        hub_id=hub_id,
+        rim_id=rim_id,
+        spoke_id=spoke_id,
+        nipple_id=nipple_id,
+        lacing_pattern=lacing_pattern,
+        spoke_count=spoke_count,
+        actual_spoke_length_left=actual_spoke_length_left,
+        actual_spoke_length_right=actual_spoke_length_right,
+        comments=comments
+    )
+    logger.info(f"Created wheel build: {name} (ID: {build_id})")
+    return build
+
+def get_all_wheel_builds():
+    """Get all wheel builds."""
+    return list(WheelBuild.select().order_by(WheelBuild.updated_at.desc()))
+
+def get_wheel_build_by_id(build_id):
+    """Get a specific wheel build by ID."""
+    try:
+        return WheelBuild.get_by_id(build_id)
+    except WheelBuild.DoesNotExist:
+        return None
+
+def update_wheel_build(build_id, **kwargs):
+    """Update a wheel build's fields."""
+    kwargs['updated_at'] = datetime.now()
+    query = WheelBuild.update(**kwargs).where(WheelBuild.id == build_id)
+    rows_updated = query.execute()
+    logger.info(f"Updated wheel build {build_id}: {rows_updated} rows")
+    return rows_updated > 0
+
+def delete_wheel_build(build_id):
+    """Delete a wheel build and associated tension sessions/readings."""
+    # Delete tension readings first
+    sessions = list(TensionSession.select().where(TensionSession.wheel_build_id == build_id))
+    for session in sessions:
+        TensionReading.delete().where(TensionReading.tension_session_id == session.id).execute()
+
+    # Delete tension sessions
+    TensionSession.delete().where(TensionSession.wheel_build_id == build_id).execute()
+
+    # Delete wheel build
+    build = WheelBuild.get_by_id(build_id)
+    build.delete_instance()
+    logger.info(f"Deleted wheel build: {build_id}")
+    return True
+
+# Tension Session operations
+
+def create_tension_session(wheel_build_id, session_name, session_date, notes=None):
+    """Create a new tension session for a wheel build."""
+    session_id = generate_uuid()
+    session = TensionSession.create(
+        id=session_id,
+        wheel_build_id=wheel_build_id,
+        session_name=session_name,
+        session_date=session_date,
+        notes=notes
+    )
+    logger.info(f"Created tension session: {session_name} for build {wheel_build_id}")
+    return session
+
+def get_sessions_by_build(wheel_build_id):
+    """Get all tension sessions for a wheel build."""
+    return list(TensionSession.select()
+                .where(TensionSession.wheel_build_id == wheel_build_id)
+                .order_by(TensionSession.session_date.desc()))
+
+def get_tension_session_by_id(session_id):
+    """Get a specific tension session by ID."""
+    try:
+        return TensionSession.get_by_id(session_id)
+    except TensionSession.DoesNotExist:
+        return None
+
+# Tension Reading operations
+
+def create_tension_reading(tension_session_id, spoke_number, side, tm_reading,
+                          estimated_tension_kgf, range_status, average_deviation_status):
+    """Create a tension reading for a spoke."""
+    reading_id = generate_uuid()
+    reading = TensionReading.create(
+        id=reading_id,
+        tension_session_id=tension_session_id,
+        spoke_number=spoke_number,
+        side=side,
+        tm_reading=tm_reading,
+        estimated_tension_kgf=estimated_tension_kgf,
+        range_status=range_status,
+        average_deviation_status=average_deviation_status
+    )
+    return reading
+
+def get_readings_by_session(tension_session_id):
+    """Get all tension readings for a session."""
+    return list(TensionReading.select()
+                .where(TensionReading.tension_session_id == tension_session_id)
+                .order_by(TensionReading.spoke_number))
+
+def bulk_create_or_update_readings(tension_session_id, readings_data):
+    """Bulk create or update tension readings.
+
+    Args:
+        tension_session_id: Session ID
+        readings_data: List of dicts with reading data
+    """
+    # Delete existing readings for this session
+    TensionReading.delete().where(TensionReading.tension_session_id == tension_session_id).execute()
+
+    # Create new readings
+    for data in readings_data:
+        create_tension_reading(
+            tension_session_id=tension_session_id,
+            spoke_number=data['spoke_number'],
+            side=data['side'],
+            tm_reading=data['tm_reading'],
+            estimated_tension_kgf=data['estimated_tension_kgf'],
+            range_status=data['range_status'],
+            average_deviation_status=data['average_deviation_status']
+        )
+
+    logger.info(f"Bulk updated {len(readings_data)} readings for session {tension_session_id}")
+    return True
