@@ -78,7 +78,7 @@
                     </div>
                     <div class="card-footer bg-transparent">
                         <small class="text-muted">
-                            <i class="bi bi-calendar3"></i> Updated: {{ build.updated_at.strftime('%b %d, %Y') }}
+                            <i class="bi bi-calendar3"></i> Updated: {{ build.updated_at.strftime('%b %d, %Y') if build.updated_at else 'N/A' }}
                         </small>
                     </div>
                 </div>

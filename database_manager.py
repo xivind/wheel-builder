@@ -37,6 +37,12 @@ def get_hub_by_id(hub_id):
     except Hub.DoesNotExist:
         return None
 
+def get_hubs_by_ids(hub_ids):
+    """Get multiple hubs by their IDs (batch fetch)."""
+    if not hub_ids:
+        return []
+    return list(Hub.select().where(Hub.id.in_(hub_ids)))
+
 def update_hub(hub_id, **kwargs):
     """Update a hub's fields."""
     query = Hub.update(**kwargs).where(Hub.id == hub_id)
@@ -89,6 +95,12 @@ def get_rim_by_id(rim_id):
         return Rim.get_by_id(rim_id)
     except Rim.DoesNotExist:
         return None
+
+def get_rims_by_ids(rim_ids):
+    """Get multiple rims by their IDs (batch fetch)."""
+    if not rim_ids:
+        return []
+    return list(Rim.select().where(Rim.id.in_(rim_ids)))
 
 def update_rim(rim_id, **kwargs):
     """Update a rim's fields."""
