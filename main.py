@@ -224,6 +224,11 @@ async def build_details(request: Request, build_id: str, session: str = None):
                 "right"
             )
 
+        # Calculate tension range if spoke and rim are available
+        tension_range = None
+        if spoke and rim:
+            tension_range = calculate_tension_range(spoke, rim)
+
         # Fetch tension sessions for this build
         sessions = get_sessions_by_build(build_id)
 
@@ -286,7 +291,8 @@ async def build_details(request: Request, build_id: str, session: str = None):
             "readings_right": readings_right,
             "stats_left": stats_left,
             "stats_right": stats_right,
-            "quality_status": quality_status
+            "quality_status": quality_status,
+            "tension_range": tension_range
         })
     except Exception as e:
         logger.error(f"Error loading build details: {e}")

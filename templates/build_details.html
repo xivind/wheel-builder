@@ -454,6 +454,18 @@
                     </div>
                 </div>
 
+                <!-- Tension Distribution Chart -->
+                {% if readings_left or readings_right %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6><i class="bi bi-diagram-3"></i> Tension Distribution</h6>
+                        <div style="max-width: 600px; margin: 0 auto;">
+                            <canvas id="tensionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Quality Indicators -->
                 {% if quality_status %}
                 <div class="mt-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
@@ -517,4 +529,40 @@
     font-size: 0.875rem;
 }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+{% if selected_session and (readings_left or readings_right) %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const leftReadings = [
+        {% for i in range(1, (build.spoke_count // 2) + 1) %}
+            {% if readings_left.get(i) and readings_left[i].get('kgf') %}
+                {{ readings_left[i]['kgf'] }}{% if not loop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ];
+
+    const rightReadings = [
+        {% for i in range(1, (build.spoke_count // 2) + 1) %}
+            {% if readings_right.get(i) and readings_right[i].get('kgf') %}
+                {{ readings_right[i]['kgf'] }}{% if not loop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    ];
+
+    const labels = [
+        {% for i in range(1, (build.spoke_count // 2) + 1) %}
+            "{{ i }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const recommendedMax = {{ tension_range.max_kgf if tension_range else 'null' }};
+
+    if (leftReadings.length > 0 || rightReadings.length > 0) {
+        initTensionChart(leftReadings, rightReadings, labels, labels, null, recommendedMax);
+    }
+});
+</script>
+{% endif %}
 {% endblock %}
