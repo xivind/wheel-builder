@@ -1,0 +1,110 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+            <h5 class="modal-title">
+                <i class="bi bi-{% if rim %}pencil{% else %}plus-circle{% endif %}"></i>
+                {% if rim %}Edit Rim{% else %}Add New Rim{% endif %}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="{% if rim %}/config/rim/{{ rim.id }}/update{% else %}/config/rim/create{% endif %}">
+            <div class="modal-body">
+                {% if locked %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>This component is locked.</strong>
+                    It is being used by the following builds and cannot be edited:
+                    <ul class="mb-0 mt-2">
+                        {% for build in used_by_builds %}
+                        <li><a href="/build/{{ build.id }}">{{ build.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="make" class="form-label">Make <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="make" name="make"
+                               value="{% if rim %}{{ rim.make }}{% endif %}" {% if locked %}disabled{% else %}required{% endif %}>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="model" class="form-label">Model <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="model" name="model"
+                               value="{% if rim %}{{ rim.model }}{% endif %}" {% if locked %}disabled{% else %}required{% endif %}>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="type" class="form-label">Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="type" name="type" {% if locked %}disabled{% else %}required{% endif %}>
+                            <option value="">Select type...</option>
+                            <option value="symmetric" {% if rim and rim.type == 'symmetric' %}selected{% endif %}>Symmetric</option>
+                            <option value="asymmetric" {% if rim and rim.type == 'asymmetric' %}selected{% endif %}>Asymmetric</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="erd" class="form-label">Effective Rim Diameter (ERD) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="erd" name="erd"
+                               value="{% if rim %}{{ rim.erd }}{% endif %}"
+                               placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="osb" class="form-label">Offset Spoke Bed (OSB) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="osb" name="osb"
+                               value="{% if rim %}{{ rim.osb }}{% endif %}"
+                               placeholder="mm (0 for symmetric)" {% if locked %}disabled{% else %}required{% endif %}>
+                        <small class="form-text text-muted">0 for symmetric rims</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="inner_width" class="form-label">Inner Width <span class="text-danger">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="inner_width" name="inner_width"
+                               value="{% if rim %}{{ rim.inner_width }}{% endif %}"
+                               placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="outer_width" class="form-label">Outer Width <span class="text-danger">*</span></label>
+                        <input type="number" step="0.1" class="form-control" id="outer_width" name="outer_width"
+                               value="{% if rim %}{{ rim.outer_width }}{% endif %}"
+                               placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="holes" class="form-label">Number of Holes <span class="text-danger">*</span></label>
+                        <select class="form-select" id="holes" name="holes" {% if locked %}disabled{% else %}required{% endif %}>
+                            <option value="">Select...</option>
+                            <option value="24" {% if rim and rim.holes == 24 %}selected{% endif %}>24</option>
+                            <option value="28" {% if rim and rim.holes == 28 %}selected{% endif %}>28</option>
+                            <option value="32" {% if rim and rim.holes == 32 %}selected{% endif %}>32</option>
+                            <option value="36" {% if rim and rim.holes == 36 %}selected{% endif %}>36</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="material" class="form-label">Material <span class="text-danger">*</span></label>
+                        <select class="form-select" id="material" name="material" {% if locked %}disabled{% else %}required{% endif %}>
+                            <option value="">Select material...</option>
+                            <option value="aluminum" {% if rim and rim.material == 'aluminum' %}selected{% endif %}>Aluminum</option>
+                            <option value="carbon" {% if rim and rim.material == 'carbon' %}selected{% endif %}>Carbon</option>
+                            <option value="steel" {% if rim and rim.material == 'steel' %}selected{% endif %}>Steel</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-muted small mt-3">
+                    <i class="bi bi-info-circle"></i> All fields are required
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                {% if not locked %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {% if rim %}Update{% else %}Create{% endif %} Rim
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
