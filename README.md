@@ -148,6 +148,23 @@ The application follows a strict 3-layer architecture:
 - Survives container restarts and rebuilds
 - Seed data added automatically if database is new
 
+## Logging
+
+- Log file location: `/app/data/logs/app.log` (inside container) or `~/code/container_data/logs/app.log` (on host)
+- Logs to both console (stdout) and rotating log file
+- Rotating log file with 3 backups, rotates at 10000 bytes
+- Log format: `DD-Mon-YY HH:MM:SS - LEVEL - MESSAGE`
+- For local development: logs written to `data/logs/app.log`
+
+To view logs:
+```bash
+# Docker logs (stdout)
+docker logs wheel-builder
+
+# Application log file
+tail -f ~/code/container_data/logs/app.log
+```
+
 ## Backup
 
 To backup your data:
@@ -171,12 +188,17 @@ docker start wheel-builder
 pip install -r requirements.txt
 ```
 
-2. Run the application:
+2. Create data directory:
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+mkdir -p data/logs
 ```
 
-3. Access at `http://localhost:8004`
+3. Run the application:
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config_local.ini
+```
+
+4. Access at `http://localhost:8004`
 
 ### Project Structure
 
