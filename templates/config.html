@@ -71,7 +71,12 @@
                             <tbody>
                                 {% for hub in hubs %}
                                 <tr>
-                                    <td>{{ hub.make }}</td>
+                                    <td>
+                                        {% if hub.locked %}
+                                            <i class="bi bi-lock-fill text-warning" title="Used by {{ hub.used_by_builds|length }} build(s)"></i>
+                                        {% endif %}
+                                        {{ hub.make }}
+                                    </td>
                                     <td>{{ hub.model }}</td>
                                     <td><span class="badge bg-{% if hub.type == 'front' %}info{% else %}success{% endif %}">{{ hub.type|title }}</span></td>
                                     <td>{{ hub.old }}</td>
@@ -87,13 +92,12 @@
                                                 hx-swap="innerHTML"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#component-modal"
-                                                title="Edit">
+                                                {% if hub.locked %}disabled title="Cannot edit - used by {{ hub.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <form method="POST" action="/config/hub/{{ hub.id }}/delete" style="display: inline;">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Are you sure you want to delete this hub?')"
-                                                    title="Delete">
+                                                    {% if hub.locked %}disabled title="Cannot delete - used by {{ hub.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this hub?')" title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -146,7 +150,12 @@
                             <tbody>
                                 {% for rim in rims %}
                                 <tr>
-                                    <td>{{ rim.make }}</td>
+                                    <td>
+                                        {% if rim.locked %}
+                                            <i class="bi bi-lock-fill text-warning" title="Used by {{ rim.used_by_builds|length }} build(s)"></i>
+                                        {% endif %}
+                                        {{ rim.make }}
+                                    </td>
                                     <td>{{ rim.model }}</td>
                                     <td><span class="badge bg-{% if rim.type == 'symmetric' %}info{% else %}warning text-dark{% endif %}">{{ rim.type|title }}</span></td>
                                     <td>{{ rim.erd }}</td>
@@ -162,13 +171,12 @@
                                                 hx-swap="innerHTML"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#component-modal"
-                                                title="Edit">
+                                                {% if rim.locked %}disabled title="Cannot edit - used by {{ rim.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <form method="POST" action="/config/rim/{{ rim.id }}/delete" style="display: inline;">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Are you sure you want to delete this rim?')"
-                                                    title="Delete">
+                                                    {% if rim.locked %}disabled title="Cannot delete - used by {{ rim.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this rim?')" title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -216,7 +224,12 @@
                             <tbody>
                                 {% for spoke in spokes %}
                                 <tr>
-                                    <td>{{ spoke.material|title }}</td>
+                                    <td>
+                                        {% if spoke.locked %}
+                                            <i class="bi bi-lock-fill text-warning" title="Used by {{ spoke.used_by_builds|length }} build(s)"></i>
+                                        {% endif %}
+                                        {{ spoke.material|title }}
+                                    </td>
                                     <td>{{ spoke.gauge }}</td>
                                     <td>{{ spoke.max_tension }}</td>
                                     <td>{{ spoke.length }}</td>
@@ -227,13 +240,12 @@
                                                 hx-swap="innerHTML"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#component-modal"
-                                                title="Edit">
+                                                {% if spoke.locked %}disabled title="Cannot edit - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <form method="POST" action="/config/spoke/{{ spoke.id }}/delete" style="display: inline;">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Are you sure you want to delete this spoke?')"
-                                                    title="Delete">
+                                                    {% if spoke.locked %}disabled title="Cannot delete - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this spoke?')" title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -281,7 +293,12 @@
                             <tbody>
                                 {% for nipple in nipples %}
                                 <tr>
-                                    <td>{{ nipple.material|title }}</td>
+                                    <td>
+                                        {% if nipple.locked %}
+                                            <i class="bi bi-lock-fill text-warning" title="Used by {{ nipple.used_by_builds|length }} build(s)"></i>
+                                        {% endif %}
+                                        {{ nipple.material|title }}
+                                    </td>
                                     <td>{{ nipple.diameter }}</td>
                                     <td>{{ nipple.length }}</td>
                                     <td>{{ nipple.color|title }}</td>
@@ -292,13 +309,12 @@
                                                 hx-swap="innerHTML"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#component-modal"
-                                                title="Edit">
+                                                {% if nipple.locked %}disabled title="Cannot edit - used by {{ nipple.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <form method="POST" action="/config/nipple/{{ nipple.id }}/delete" style="display: inline;">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Are you sure you want to delete this nipple?')"
-                                                    title="Delete">
+                                                    {% if nipple.locked %}disabled title="Cannot delete - used by {{ nipple.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this nipple?')" title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

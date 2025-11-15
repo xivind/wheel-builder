@@ -14,7 +14,9 @@ from database_manager import (
     update_wheel_build, delete_wheel_build,
     create_hub, create_rim, create_spoke, create_nipple,
     delete_hub, delete_rim, delete_spoke, delete_nipple,
-    update_hub, update_rim, update_spoke, update_nipple
+    update_hub, update_rim, update_spoke, update_nipple,
+    get_builds_using_hub, get_builds_using_rim,
+    get_builds_using_spoke, get_builds_using_nipple
 )
 from business_logic import can_calculate_spoke_length, calculate_spoke_length
 
@@ -243,6 +245,27 @@ async def config_page(request: Request):
         spokes = get_all_spokes()
         nipples = get_all_nipples()
 
+        # Add locking information to each component
+        for hub in hubs:
+            builds_using = get_builds_using_hub(hub.id)
+            hub.locked = len(builds_using) > 0
+            hub.used_by_builds = builds_using
+
+        for rim in rims:
+            builds_using = get_builds_using_rim(rim.id)
+            rim.locked = len(builds_using) > 0
+            rim.used_by_builds = builds_using
+
+        for spoke in spokes:
+            builds_using = get_builds_using_spoke(spoke.id)
+            spoke.locked = len(builds_using) > 0
+            spoke.used_by_builds = builds_using
+
+        for nipple in nipples:
+            builds_using = get_builds_using_nipple(nipple.id)
+            nipple.locked = len(builds_using) > 0
+            nipple.used_by_builds = builds_using
+
         return templates.TemplateResponse("config.html", {
             "request": request,
             "hubs": hubs,
@@ -262,14 +285,23 @@ async def hub_form_partial(request: Request, id: str = None):
     """Return hub form modal partial for HTMX."""
     try:
         hub = None
+        locked = False
+        used_by_builds = []
+
         if id:
             hub = get_hub_by_id(id)
             if not hub:
                 return HTMLResponse("<div class='alert alert-danger'>Hub not found.</div>", status_code=404)
 
+            # Check if component is locked
+            used_by_builds = get_builds_using_hub(id)
+            locked = len(used_by_builds) > 0
+
         return templates.TemplateResponse("partials/hub_form.html", {
             "request": request,
-            "hub": hub
+            "hub": hub,
+            "locked": locked,
+            "used_by_builds": used_by_builds
         })
     except Exception as e:
         logger.error(f"Error loading hub form: {e}")
@@ -280,14 +312,23 @@ async def rim_form_partial(request: Request, id: str = None):
     """Return rim form modal partial for HTMX."""
     try:
         rim = None
+        locked = False
+        used_by_builds = []
+
         if id:
             rim = get_rim_by_id(id)
             if not rim:
                 return HTMLResponse("<div class='alert alert-danger'>Rim not found.</div>", status_code=404)
 
+            # Check if component is locked
+            used_by_builds = get_builds_using_rim(id)
+            locked = len(used_by_builds) > 0
+
         return templates.TemplateResponse("partials/rim_form.html", {
             "request": request,
-            "rim": rim
+            "rim": rim,
+            "locked": locked,
+            "used_by_builds": used_by_builds
         })
     except Exception as e:
         logger.error(f"Error loading rim form: {e}")
@@ -298,14 +339,23 @@ async def spoke_form_partial(request: Request, id: str = None):
     """Return spoke form modal partial for HTMX."""
     try:
         spoke = None
+        locked = False
+        used_by_builds = []
+
         if id:
             spoke = get_spoke_by_id(id)
             if not spoke:
                 return HTMLResponse("<div class='alert alert-danger'>Spoke not found.</div>", status_code=404)
 
+            # Check if component is locked
+            used_by_builds = get_builds_using_spoke(id)
+            locked = len(used_by_builds) > 0
+
         return templates.TemplateResponse("partials/spoke_form.html", {
             "request": request,
-            "spoke": spoke
+            "spoke": spoke,
+            "locked": locked,
+            "used_by_builds": used_by_builds
         })
     except Exception as e:
         logger.error(f"Error loading spoke form: {e}")
@@ -316,14 +366,23 @@ async def nipple_form_partial(request: Request, id: str = None):
     """Return nipple form modal partial for HTMX."""
     try:
         nipple = None
+        locked = False
+        used_by_builds = []
+
         if id:
             nipple = get_nipple_by_id(id)
             if not nipple:
                 return HTMLResponse("<div class='alert alert-danger'>Nipple not found.</div>", status_code=404)
 
+            # Check if component is locked
+            used_by_builds = get_builds_using_nipple(id)
+            locked = len(used_by_builds) > 0
+
         return templates.TemplateResponse("partials/nipple_form.html", {
             "request": request,
-            "nipple": nipple
+            "nipple": nipple,
+            "locked": locked,
+            "used_by_builds": used_by_builds
         })
     except Exception as e:
         logger.error(f"Error loading nipple form: {e}")
@@ -380,6 +439,12 @@ async def update_hub_route(
 ):
     """Update an existing hub."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_hub(hub_id)
+        if builds_using:
+            logger.warning(f"Cannot update hub {hub_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         success = update_hub(
             hub_id,
             make=make,
@@ -450,6 +515,12 @@ async def update_rim_route(
 ):
     """Update an existing rim."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_rim(rim_id)
+        if builds_using:
+            logger.warning(f"Cannot update rim {rim_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         success = update_rim(
             rim_id,
             make=make,
@@ -505,6 +576,12 @@ async def update_spoke_route(
 ):
     """Update an existing spoke."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_spoke(spoke_id)
+        if builds_using:
+            logger.warning(f"Cannot update spoke {spoke_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         success = update_spoke(
             spoke_id,
             material=material,
@@ -555,6 +632,12 @@ async def update_nipple_route(
 ):
     """Update an existing nipple."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_nipple(nipple_id)
+        if builds_using:
+            logger.warning(f"Cannot update nipple {nipple_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         success = update_nipple(
             nipple_id,
             material=material,
@@ -573,6 +656,12 @@ async def update_nipple_route(
 async def delete_hub_route(hub_id: str):
     """Delete a hub."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_hub(hub_id)
+        if builds_using:
+            logger.warning(f"Cannot delete hub {hub_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         delete_hub(hub_id)
         logger.info(f"Deleted hub: {hub_id}")
         return RedirectResponse(url="/config", status_code=303)
@@ -584,6 +673,12 @@ async def delete_hub_route(hub_id: str):
 async def delete_rim_route(rim_id: str):
     """Delete a rim."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_rim(rim_id)
+        if builds_using:
+            logger.warning(f"Cannot delete rim {rim_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         delete_rim(rim_id)
         logger.info(f"Deleted rim: {rim_id}")
         return RedirectResponse(url="/config", status_code=303)
@@ -595,6 +690,12 @@ async def delete_rim_route(rim_id: str):
 async def delete_spoke_route(spoke_id: str):
     """Delete a spoke."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_spoke(spoke_id)
+        if builds_using:
+            logger.warning(f"Cannot delete spoke {spoke_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         delete_spoke(spoke_id)
         logger.info(f"Deleted spoke: {spoke_id}")
         return RedirectResponse(url="/config", status_code=303)
@@ -606,6 +707,12 @@ async def delete_spoke_route(spoke_id: str):
 async def delete_nipple_route(nipple_id: str):
     """Delete a nipple."""
     try:
+        # Check if component is locked
+        builds_using = get_builds_using_nipple(nipple_id)
+        if builds_using:
+            logger.warning(f"Cannot delete nipple {nipple_id}: used by {len(builds_using)} build(s)")
+            return RedirectResponse(url="/config", status_code=303)
+
         delete_nipple(nipple_id)
         logger.info(f"Deleted nipple: {nipple_id}")
         return RedirectResponse(url="/config", status_code=303)
