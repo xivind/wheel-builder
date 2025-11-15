@@ -293,3 +293,42 @@ def determine_quality_status(analysis_results, tension_range):
         'status': status,
         'issues': issues
     }
+
+def tm_reading_to_kgf(tm_reading, spoke_gauge):
+    """Convert Park Tool TM-1 reading to kgf tension.
+
+    NOTE: This is a simplified conversion. Actual conversion depends on spoke gauge.
+    Based on Park Tool TM-1 conversion charts.
+
+    Args:
+        tm_reading: Park Tool TM-1 reading (0-50 range)
+        spoke_gauge: Spoke gauge string (e.g., "2.0mm", "1.8mm")
+
+    Returns:
+        float: Estimated tension in kgf
+    """
+    # Extract numeric gauge value
+    try:
+        gauge_num = float(spoke_gauge.split()[0])
+    except (ValueError, IndexError):
+        # Default to 2.0mm if parsing fails
+        gauge_num = 2.0
+
+    # Simplified conversion factor based on gauge
+    # For 2.0mm spokes: multiply by ~10
+    # For thinner spokes: multiply by less
+    # For thicker spokes: multiply by more
+    if gauge_num >= 2.3:
+        conversion_factor = 12.0
+    elif gauge_num >= 2.0:
+        conversion_factor = 10.0
+    elif gauge_num >= 1.8:
+        conversion_factor = 8.5
+    else:
+        conversion_factor = 7.0
+
+    kgf = tm_reading * conversion_factor
+
+    logger.debug(f"TM reading {tm_reading} with gauge {spoke_gauge} = {kgf:.1f} kgf")
+
+    return round(kgf, 1)

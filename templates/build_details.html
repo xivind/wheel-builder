@@ -291,7 +291,7 @@
             </div>
 
             {% if selected_session %}
-            <div class="border rounded p-3 bg-light">
+            <div class="border rounded p-3 bg-light mb-3">
                 <h6 class="text-primary mb-3"><i class="bi bi-clipboard-data"></i> Session Details</h6>
                 <div class="mb-2">
                     <span class="text-muted">Name:</span>
@@ -307,10 +307,178 @@
                     <p class="mb-0 text-wrap" style="white-space: pre-wrap;">{{ selected_session.notes }}</p>
                 </div>
                 {% endif %}
-                <div class="alert alert-info mt-3 mb-0">
-                    <i class="bi bi-info-circle"></i> Tension readings will be displayed here (coming in next task).
-                </div>
             </div>
+
+            {% if not build.spoke_count %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Please set the spoke count in the build configuration to enter tension readings.
+            </div>
+            {% else %}
+            <!-- Tension Readings Entry -->
+            <form method="POST" action="/build/{{ build.id }}/session/{{ selected_session.id }}/readings">
+                <div class="row">
+                    <!-- Left Side -->
+                    <div class="col-md-6">
+                        <h6 class="text-secondary mb-3"><i class="bi bi-arrow-left"></i> Left Side Spokes</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Spoke</th>
+                                        <th>TM-1</th>
+                                        <th>kgf</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(1, (build.spoke_count // 2) + 1) %}
+                                    <tr>
+                                        <td class="align-middle">{{ i }}</td>
+                                        <td>
+                                            <input type="number" step="0.1" min="0" class="form-control form-control-sm"
+                                                   name="tm_{{ i }}_left"
+                                                   value="{{ readings_left.get(i, {}).get('tm_reading', '') }}"
+                                                   style="max-width: 80px;">
+                                        </td>
+                                        <td class="align-middle">
+                                            {% if readings_left.get(i, {}).get('kgf') %}
+                                                {{ "%.1f"|format(readings_left[i]['kgf']) }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle">
+                                            {% if readings_left.get(i, {}).get('range_status') %}
+                                                <span class="badge bg-{% if readings_left[i].range_status == 'in_range' %}success{% elif readings_left[i].range_status == 'over' %}danger{% else %}warning{% endif %}">
+                                                    {{ readings_left[i].range_status|replace('_', ' ')|title }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if stats_left %}
+                        <div class="mt-3 p-2 bg-white rounded border">
+                            <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <small class="text-muted">Average:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_left.average) }} kgf</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Std Dev:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_left.std_dev) }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Min:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_left.min) }} kgf</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Max:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_left.max) }} kgf</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right Side -->
+                    <div class="col-md-6">
+                        <h6 class="text-success mb-3"><i class="bi bi-arrow-right"></i> Right Side Spokes</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Spoke</th>
+                                        <th>TM-1</th>
+                                        <th>kgf</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(1, (build.spoke_count // 2) + 1) %}
+                                    <tr>
+                                        <td class="align-middle">{{ i }}</td>
+                                        <td>
+                                            <input type="number" step="0.1" min="0" class="form-control form-control-sm"
+                                                   name="tm_{{ i }}_right"
+                                                   value="{{ readings_right.get(i, {}).get('tm_reading', '') }}"
+                                                   style="max-width: 80px;">
+                                        </td>
+                                        <td class="align-middle">
+                                            {% if readings_right.get(i, {}).get('kgf') %}
+                                                {{ "%.1f"|format(readings_right[i]['kgf']) }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle">
+                                            {% if readings_right.get(i, {}).get('range_status') %}
+                                                <span class="badge bg-{% if readings_right[i].range_status == 'in_range' %}success{% elif readings_right[i].range_status == 'over' %}danger{% else %}warning{% endif %}">
+                                                    {{ readings_right[i].range_status|replace('_', ' ')|title }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if stats_right %}
+                        <div class="mt-3 p-2 bg-white rounded border">
+                            <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <small class="text-muted">Average:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_right.average) }} kgf</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Std Dev:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_right.std_dev) }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Min:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_right.min) }} kgf</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Max:</small>
+                                    <div class="fw-bold">{{ "%.1f"|format(stats_right.max) }} kgf</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quality Indicators -->
+                {% if quality_status %}
+                <div class="mt-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
+                    <h6 class="mb-2">
+                        <i class="bi {% if quality_status.status == 'well_balanced' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %}"></i>
+                        Quality Status: <strong>{{ quality_status.status|replace('_', ' ')|title }}</strong>
+                    </h6>
+                    {% if quality_status.issues %}
+                    <ul class="mb-0 small">
+                        {% for issue in quality_status.issues %}
+                        <li>{{ issue }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Save Button -->
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Readings
+                    </button>
+                </div>
+            </form>
+            {% endif %}
             {% else %}
             <div class="alert alert-info mb-0">
                 <i class="bi bi-arrow-up"></i> Select a session from the dropdown above to view details.

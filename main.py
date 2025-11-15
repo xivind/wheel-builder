@@ -17,9 +17,14 @@ from database_manager import (
     update_hub, update_rim, update_spoke, update_nipple,
     get_builds_using_hub, get_builds_using_rim,
     get_builds_using_spoke, get_builds_using_nipple,
-    get_sessions_by_build, get_tension_session_by_id, create_tension_session
+    get_sessions_by_build, get_tension_session_by_id, create_tension_session,
+    get_readings_by_session, bulk_create_or_update_readings
 )
-from business_logic import can_calculate_spoke_length, calculate_spoke_length
+from business_logic import (
+    can_calculate_spoke_length, calculate_spoke_length,
+    analyze_tension_readings, calculate_tension_range,
+    determine_quality_status, tm_reading_to_kgf
+)
 from datetime import datetime
 
 app = FastAPI(title="Wheel Builder")
@@ -224,11 +229,45 @@ async def build_details(request: Request, build_id: str, session: str = None):
 
         # If a specific session is requested, fetch it
         selected_session = None
+        readings_left = {}
+        readings_right = {}
+        stats_left = None
+        stats_right = None
+        quality_status = None
+
         if session:
             selected_session = get_tension_session_by_id(session)
             # Verify session belongs to this build
             if selected_session and selected_session.wheel_build_id != build_id:
                 selected_session = None
+
+            # If valid session, fetch and analyze readings
+            if selected_session:
+                readings = get_readings_by_session(selected_session.id)
+
+                # Organize readings by side and spoke number
+                for reading in readings:
+                    reading_data = {
+                        'tm_reading': reading.tm_reading,
+                        'kgf': reading.estimated_tension_kgf,
+                        'range_status': reading.range_status,
+                        'avg_deviation_status': reading.average_deviation_status
+                    }
+
+                    if reading.side == 'left':
+                        readings_left[reading.spoke_number] = reading_data
+                    else:
+                        readings_right[reading.spoke_number] = reading_data
+
+                # Calculate statistics and quality status if we have readings
+                if readings and spoke and rim:
+                    tension_range = calculate_tension_range(spoke, rim)
+                    analysis = analyze_tension_readings(readings, tension_range)
+
+                    stats_left = analysis['left']
+                    stats_right = analysis['right']
+
+                    quality_status = determine_quality_status(analysis, tension_range)
 
         return templates.TemplateResponse("build_details.html", {
             "request": request,
@@ -242,7 +281,12 @@ async def build_details(request: Request, build_id: str, session: str = None):
             "calculated_left": calculated_left,
             "calculated_right": calculated_right,
             "sessions": sessions,
-            "selected_session": selected_session
+            "selected_session": selected_session,
+            "readings_left": readings_left,
+            "readings_right": readings_right,
+            "stats_left": stats_left,
+            "stats_right": stats_right,
+            "quality_status": quality_status
         })
     except Exception as e:
         logger.error(f"Error loading build details: {e}")
@@ -320,6 +364,130 @@ async def create_session_route(
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error_message": "Unable to create tension session. Please try again later."
+        }, status_code=500)
+
+@app.post("/build/{build_id}/session/{session_id}/readings")
+async def save_tension_readings(
+    request: Request,
+    build_id: str,
+    session_id: str
+):
+    """Save tension readings for a session."""
+    try:
+        # Verify the build and session exist
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Build not found."
+            }, status_code=404)
+
+        session = get_tension_session_by_id(session_id)
+        if not session or session.wheel_build_id != build_id:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Session not found."
+            }, status_code=404)
+
+        # Get spoke and rim for tension calculations
+        spoke = get_spoke_by_id(build.spoke_id) if build.spoke_id else None
+        rim = get_rim_by_id(build.rim_id) if build.rim_id else None
+
+        if not spoke or not rim:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Build missing spoke or rim configuration."
+            }, status_code=400)
+
+        # Parse form data
+        form_data = await request.form()
+
+        # Calculate tension range
+        tension_range = calculate_tension_range(spoke, rim)
+
+        # Collect all readings data
+        readings_data = []
+        all_readings_for_stats = []
+
+        # First pass: collect all readings and convert to kgf
+        for key, value in form_data.items():
+            if not key.startswith('tm_') or not value:
+                continue
+
+            # Parse field name: tm_{spoke_number}_{side}
+            parts = key.split('_')
+            if len(parts) != 3:
+                continue
+
+            spoke_number = int(parts[1])
+            side = parts[2]  # 'left' or 'right'
+            tm_reading = float(value)
+
+            # Convert to kgf
+            kgf = tm_reading_to_kgf(tm_reading, spoke.gauge)
+
+            # Determine range status
+            if kgf < tension_range['min_kgf']:
+                range_status = 'under'
+            elif kgf > tension_range['max_kgf']:
+                range_status = 'over'
+            else:
+                range_status = 'in_range'
+
+            reading_info = {
+                'spoke_number': spoke_number,
+                'side': side,
+                'tm_reading': tm_reading,
+                'estimated_tension_kgf': kgf,
+                'range_status': range_status,
+                'average_deviation_status': 'in_range'  # Temporary, will update in second pass
+            }
+
+            readings_data.append(reading_info)
+            all_readings_for_stats.append(reading_info)
+
+        # Second pass: calculate average deviation status
+        # Separate by side
+        left_tensions = [r['estimated_tension_kgf'] for r in readings_data if r['side'] == 'left']
+        right_tensions = [r['estimated_tension_kgf'] for r in readings_data if r['side'] == 'right']
+
+        left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
+        right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
+
+        # Update average deviation status
+        for reading in readings_data:
+            avg = left_avg if reading['side'] == 'left' else right_avg
+
+            if avg > 0:
+                upper_limit = avg * 1.2
+                lower_limit = avg * 0.8
+
+                if reading['estimated_tension_kgf'] < lower_limit:
+                    reading['average_deviation_status'] = 'under'
+                elif reading['estimated_tension_kgf'] > upper_limit:
+                    reading['average_deviation_status'] = 'over'
+                else:
+                    reading['average_deviation_status'] = 'in_range'
+
+        # Save to database
+        if readings_data:
+            bulk_create_or_update_readings(session_id, readings_data)
+            logger.info(f"Saved {len(readings_data)} tension readings for session {session_id}")
+
+        # Redirect back to build details with session selected
+        return RedirectResponse(url=f"/build/{build_id}?session={session_id}", status_code=303)
+
+    except ValueError as e:
+        logger.error(f"Error parsing tension readings: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Invalid reading values. Please check your inputs."
+        }, status_code=400)
+    except Exception as e:
+        logger.error(f"Error saving tension readings: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to save tension readings. Please try again later."
         }, status_code=500)
 
 @app.get("/config", response_class=HTMLResponse)
