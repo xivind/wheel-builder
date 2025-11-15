@@ -4,6 +4,7 @@ from database_manager import (
 )
 from logger import logger
 import math
+import statistics
 
 def can_calculate_spoke_length(wheel_build):
     """Check if wheel build has all required data for spoke length calculation.
@@ -161,4 +162,134 @@ def calculate_recommended_spoke_lengths(wheel_build):
     return {
         'left': left_length,
         'right': right_length
+    }
+
+def calculate_tension_range(spoke, rim):
+    """Calculate recommended min/max tension for a spoke/rim combination.
+
+    NOTE: This is a placeholder. User will provide actual formulas.
+
+    Args:
+        spoke: Spoke model instance
+        rim: Rim model instance
+
+    Returns:
+        dict: {
+            'min_kgf': float,
+            'max_kgf': float,
+            'min_tm_reading': float,
+            'max_tm_reading': float
+        }
+    """
+    # Use spoke max_tension as the upper limit
+    # Set min as 60% of max (common rule of thumb)
+    max_tension = spoke.max_tension
+    min_tension = max_tension * 0.6
+
+    # Placeholder conversion to Park Tool TM-1 readings
+    # Actual conversion depends on spoke gauge and type
+    # This is simplified: divide kgf by a factor
+    gauge_num = float(spoke.gauge.split()[0])  # Extract first number from gauge
+    conversion_factor = 4.5 if gauge_num >= 2.0 else 5.0
+
+    min_tm = min_tension / conversion_factor
+    max_tm = max_tension / conversion_factor
+
+    logger.info(f"Tension range: {min_tension:.1f}-{max_tension:.1f} kgf, TM: {min_tm:.1f}-{max_tm:.1f}")
+
+    return {
+        'min_kgf': round(min_tension, 1),
+        'max_kgf': round(max_tension, 1),
+        'min_tm_reading': round(min_tm, 1),
+        'max_tm_reading': round(max_tm, 1)
+    }
+
+def analyze_tension_readings(readings, tension_range):
+    """Analyze tension readings for a session.
+
+    Args:
+        readings: List of TensionReading model instances
+        tension_range: Dict from calculate_tension_range
+
+    Returns:
+        dict: Analysis results by side
+    """
+    results = {
+        'left': {'readings': [], 'average': 0, 'std_dev': 0, 'min': 0, 'max': 0},
+        'right': {'readings': [], 'average': 0, 'std_dev': 0, 'min': 0, 'max': 0}
+    }
+
+    # Separate readings by side
+    left_readings = [r for r in readings if r.side == 'left']
+    right_readings = [r for r in readings if r.side == 'right']
+
+    for side, side_readings in [('left', left_readings), ('right', right_readings)]:
+        if not side_readings:
+            continue
+
+        tensions = [r.estimated_tension_kgf for r in side_readings]
+
+        avg = statistics.mean(tensions)
+        std_dev = statistics.stdev(tensions) if len(tensions) > 1 else 0
+        min_tension = min(tensions)
+        max_tension = max(tensions)
+
+        # Calculate ±20% limits
+        upper_limit = avg * 1.2
+        lower_limit = avg * 0.8
+
+        results[side] = {
+            'readings': side_readings,
+            'average': round(avg, 2),
+            'std_dev': round(std_dev, 2),
+            'min': round(min_tension, 2),
+            'max': round(max_tension, 2),
+            'upper_limit_20pct': round(upper_limit, 2),
+            'lower_limit_20pct': round(lower_limit, 2)
+        }
+
+    return results
+
+def determine_quality_status(analysis_results, tension_range):
+    """Determine overall quality status of wheel.
+
+    Args:
+        analysis_results: Dict from analyze_tension_readings
+        tension_range: Dict from calculate_tension_range
+
+    Returns:
+        dict: {
+            'status': 'well_balanced' | 'needs_truing' | 'uneven_tension',
+            'issues': list of issue descriptions
+        }
+    """
+    issues = []
+
+    for side in ['left', 'right']:
+        readings = analysis_results[side]['readings']
+
+        # Check if any readings outside recommended range
+        out_of_range = [r for r in readings if r.range_status != 'in_range']
+        if out_of_range:
+            issues.append(f"{len(out_of_range)} spokes on {side} side outside recommended tension range")
+
+        # Check if any readings outside ±20%
+        out_of_tolerance = [r for r in readings if r.average_deviation_status != 'in_range']
+        if out_of_tolerance:
+            issues.append(f"{len(out_of_tolerance)} spokes on {side} side outside ±20% tolerance")
+
+        # Check standard deviation
+        if analysis_results[side]['std_dev'] > 10:
+            issues.append(f"High tension variance on {side} side (σ={analysis_results[side]['std_dev']:.1f})")
+
+    if not issues:
+        status = 'well_balanced'
+    elif any('outside ±20%' in issue for issue in issues):
+        status = 'needs_truing'
+    else:
+        status = 'uneven_tension'
+
+    return {
+        'status': status,
+        'issues': issues
     }
