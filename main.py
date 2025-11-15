@@ -11,7 +11,10 @@ from database_manager import (
     get_all_hubs, get_all_rims, get_all_spokes, get_all_nipples,
     create_wheel_build, get_wheel_build_by_id, get_hub_by_id,
     get_rim_by_id, get_spoke_by_id, get_nipple_by_id,
-    update_wheel_build, delete_wheel_build
+    update_wheel_build, delete_wheel_build,
+    create_hub, create_rim, create_spoke, create_nipple,
+    delete_hub, delete_rim, delete_spoke, delete_nipple,
+    update_hub, update_rim, update_spoke, update_nipple
 )
 from business_logic import can_calculate_spoke_length, calculate_spoke_length
 
@@ -230,6 +233,385 @@ async def build_details(request: Request, build_id: str):
             "request": request,
             "error_message": "Unable to load build details. Please try again later."
         }, status_code=500)
+
+@app.get("/config", response_class=HTMLResponse)
+async def config_page(request: Request):
+    """Configuration page for managing component library."""
+    try:
+        hubs = get_all_hubs()
+        rims = get_all_rims()
+        spokes = get_all_spokes()
+        nipples = get_all_nipples()
+
+        return templates.TemplateResponse("config.html", {
+            "request": request,
+            "hubs": hubs,
+            "rims": rims,
+            "spokes": spokes,
+            "nipples": nipples
+        })
+    except Exception as e:
+        logger.error(f"Error loading configuration page: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to load configuration page. Please try again later."
+        }, status_code=500)
+
+@app.get("/partials/hub-form", response_class=HTMLResponse)
+async def hub_form_partial(request: Request, id: str = None):
+    """Return hub form modal partial for HTMX."""
+    try:
+        hub = None
+        if id:
+            hub = get_hub_by_id(id)
+            if not hub:
+                return HTMLResponse("<div class='alert alert-danger'>Hub not found.</div>", status_code=404)
+
+        return templates.TemplateResponse("partials/hub_form.html", {
+            "request": request,
+            "hub": hub
+        })
+    except Exception as e:
+        logger.error(f"Error loading hub form: {e}")
+        return HTMLResponse("<div class='alert alert-danger'>Unable to load form. Please try again later.</div>", status_code=500)
+
+@app.get("/partials/rim-form", response_class=HTMLResponse)
+async def rim_form_partial(request: Request, id: str = None):
+    """Return rim form modal partial for HTMX."""
+    try:
+        rim = None
+        if id:
+            rim = get_rim_by_id(id)
+            if not rim:
+                return HTMLResponse("<div class='alert alert-danger'>Rim not found.</div>", status_code=404)
+
+        return templates.TemplateResponse("partials/rim_form.html", {
+            "request": request,
+            "rim": rim
+        })
+    except Exception as e:
+        logger.error(f"Error loading rim form: {e}")
+        return HTMLResponse("<div class='alert alert-danger'>Unable to load form. Please try again later.</div>", status_code=500)
+
+@app.get("/partials/spoke-form", response_class=HTMLResponse)
+async def spoke_form_partial(request: Request, id: str = None):
+    """Return spoke form modal partial for HTMX."""
+    try:
+        spoke = None
+        if id:
+            spoke = get_spoke_by_id(id)
+            if not spoke:
+                return HTMLResponse("<div class='alert alert-danger'>Spoke not found.</div>", status_code=404)
+
+        return templates.TemplateResponse("partials/spoke_form.html", {
+            "request": request,
+            "spoke": spoke
+        })
+    except Exception as e:
+        logger.error(f"Error loading spoke form: {e}")
+        return HTMLResponse("<div class='alert alert-danger'>Unable to load form. Please try again later.</div>", status_code=500)
+
+@app.get("/partials/nipple-form", response_class=HTMLResponse)
+async def nipple_form_partial(request: Request, id: str = None):
+    """Return nipple form modal partial for HTMX."""
+    try:
+        nipple = None
+        if id:
+            nipple = get_nipple_by_id(id)
+            if not nipple:
+                return HTMLResponse("<div class='alert alert-danger'>Nipple not found.</div>", status_code=404)
+
+        return templates.TemplateResponse("partials/nipple_form.html", {
+            "request": request,
+            "nipple": nipple
+        })
+    except Exception as e:
+        logger.error(f"Error loading nipple form: {e}")
+        return HTMLResponse("<div class='alert alert-danger'>Unable to load form. Please try again later.</div>", status_code=500)
+
+@app.post("/config/hub/create")
+async def create_hub_route(
+    request: Request,
+    make: str = Form(...),
+    model: str = Form(...),
+    type: str = Form(...),
+    old: float = Form(...),
+    left_flange_diameter: float = Form(...),
+    right_flange_diameter: float = Form(...),
+    left_flange_offset: float = Form(...),
+    right_flange_offset: float = Form(...),
+    spoke_hole_diameter: float = Form(...)
+):
+    """Create a new hub."""
+    try:
+        hub = create_hub(
+            make=make,
+            model=model,
+            hub_type=type,
+            old=old,
+            left_flange_diameter=left_flange_diameter,
+            right_flange_diameter=right_flange_diameter,
+            left_flange_offset=left_flange_offset,
+            right_flange_offset=right_flange_offset,
+            spoke_hole_diameter=spoke_hole_diameter
+        )
+        logger.info(f"Created hub: {make} {model} (ID: {hub.id})")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error creating hub: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to create hub. Please try again later."
+        }, status_code=500)
+
+@app.post("/config/hub/{hub_id}/update")
+async def update_hub_route(
+    hub_id: str,
+    request: Request,
+    make: str = Form(...),
+    model: str = Form(...),
+    type: str = Form(...),
+    old: float = Form(...),
+    left_flange_diameter: float = Form(...),
+    right_flange_diameter: float = Form(...),
+    left_flange_offset: float = Form(...),
+    right_flange_offset: float = Form(...),
+    spoke_hole_diameter: float = Form(...)
+):
+    """Update an existing hub."""
+    try:
+        success = update_hub(
+            hub_id,
+            make=make,
+            model=model,
+            type=type,
+            old=old,
+            left_flange_diameter=left_flange_diameter,
+            right_flange_diameter=right_flange_diameter,
+            left_flange_offset=left_flange_offset,
+            right_flange_offset=right_flange_offset,
+            spoke_hole_diameter=spoke_hole_diameter
+        )
+        if not success:
+            logger.warning(f"Failed to update hub {hub_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error updating hub: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/rim/create")
+async def create_rim_route(
+    request: Request,
+    make: str = Form(...),
+    model: str = Form(...),
+    type: str = Form(...),
+    erd: float = Form(...),
+    osb: float = Form(...),
+    inner_width: float = Form(...),
+    outer_width: float = Form(...),
+    holes: int = Form(...),
+    material: str = Form(...)
+):
+    """Create a new rim."""
+    try:
+        rim = create_rim(
+            make=make,
+            model=model,
+            rim_type=type,
+            erd=erd,
+            osb=osb,
+            inner_width=inner_width,
+            outer_width=outer_width,
+            holes=holes,
+            material=material
+        )
+        logger.info(f"Created rim: {make} {model} (ID: {rim.id})")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error creating rim: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to create rim. Please try again later."
+        }, status_code=500)
+
+@app.post("/config/rim/{rim_id}/update")
+async def update_rim_route(
+    rim_id: str,
+    request: Request,
+    make: str = Form(...),
+    model: str = Form(...),
+    type: str = Form(...),
+    erd: float = Form(...),
+    osb: float = Form(...),
+    inner_width: float = Form(...),
+    outer_width: float = Form(...),
+    holes: int = Form(...),
+    material: str = Form(...)
+):
+    """Update an existing rim."""
+    try:
+        success = update_rim(
+            rim_id,
+            make=make,
+            model=model,
+            type=type,
+            erd=erd,
+            osb=osb,
+            inner_width=inner_width,
+            outer_width=outer_width,
+            holes=holes,
+            material=material
+        )
+        if not success:
+            logger.warning(f"Failed to update rim {rim_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error updating rim: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/spoke/create")
+async def create_spoke_route(
+    request: Request,
+    material: str = Form(...),
+    gauge: str = Form(...),
+    max_tension: float = Form(...),
+    length: float = Form(...)
+):
+    """Create a new spoke."""
+    try:
+        spoke = create_spoke(
+            material=material,
+            gauge=gauge,
+            max_tension=max_tension,
+            length=length
+        )
+        logger.info(f"Created spoke: {material} {gauge} (ID: {spoke.id})")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error creating spoke: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to create spoke. Please try again later."
+        }, status_code=500)
+
+@app.post("/config/spoke/{spoke_id}/update")
+async def update_spoke_route(
+    spoke_id: str,
+    request: Request,
+    material: str = Form(...),
+    gauge: str = Form(...),
+    max_tension: float = Form(...),
+    length: float = Form(...)
+):
+    """Update an existing spoke."""
+    try:
+        success = update_spoke(
+            spoke_id,
+            material=material,
+            gauge=gauge,
+            max_tension=max_tension,
+            length=length
+        )
+        if not success:
+            logger.warning(f"Failed to update spoke {spoke_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error updating spoke: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/nipple/create")
+async def create_nipple_route(
+    request: Request,
+    material: str = Form(...),
+    diameter: float = Form(...),
+    length: float = Form(...),
+    color: str = Form(...)
+):
+    """Create a new nipple."""
+    try:
+        nipple = create_nipple(
+            material=material,
+            diameter=diameter,
+            length=length,
+            color=color
+        )
+        logger.info(f"Created nipple: {material} {diameter}mm (ID: {nipple.id})")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error creating nipple: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to create nipple. Please try again later."
+        }, status_code=500)
+
+@app.post("/config/nipple/{nipple_id}/update")
+async def update_nipple_route(
+    nipple_id: str,
+    request: Request,
+    material: str = Form(...),
+    diameter: float = Form(...),
+    length: float = Form(...),
+    color: str = Form(...)
+):
+    """Update an existing nipple."""
+    try:
+        success = update_nipple(
+            nipple_id,
+            material=material,
+            diameter=diameter,
+            length=length,
+            color=color
+        )
+        if not success:
+            logger.warning(f"Failed to update nipple {nipple_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error updating nipple: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/hub/{hub_id}/delete")
+async def delete_hub_route(hub_id: str):
+    """Delete a hub."""
+    try:
+        delete_hub(hub_id)
+        logger.info(f"Deleted hub: {hub_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error deleting hub: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/rim/{rim_id}/delete")
+async def delete_rim_route(rim_id: str):
+    """Delete a rim."""
+    try:
+        delete_rim(rim_id)
+        logger.info(f"Deleted rim: {rim_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error deleting rim: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/spoke/{spoke_id}/delete")
+async def delete_spoke_route(spoke_id: str):
+    """Delete a spoke."""
+    try:
+        delete_spoke(spoke_id)
+        logger.info(f"Deleted spoke: {spoke_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error deleting spoke: {e}")
+        return RedirectResponse(url="/config", status_code=303)
+
+@app.post("/config/nipple/{nipple_id}/delete")
+async def delete_nipple_route(nipple_id: str):
+    """Delete a nipple."""
+    try:
+        delete_nipple(nipple_id)
+        logger.info(f"Deleted nipple: {nipple_id}")
+        return RedirectResponse(url="/config", status_code=303)
+    except Exception as e:
+        logger.error(f"Error deleting nipple: {e}")
+        return RedirectResponse(url="/config", status_code=303)
 
 @app.get("/health")
 async def health_check():
