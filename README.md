@@ -195,7 +195,7 @@ mkdir -p data/logs
 
 3. Run the application:
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config_local.ini
+uvicorn main:app --host 0.0.0.0 --port 8004 --reload --reload-exclude 'data/*' --log-config uvicorn_log_config_local.ini
 ```
 
 4. Access at `http://localhost:8004`
