@@ -263,15 +263,64 @@
         </div>
     </div>
 
-    <!-- Tension Sessions Section (Placeholder) -->
+    <!-- Tension Tracking Section -->
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom">
-            <h5 class="mb-0"><i class="bi bi-activity"></i> Tension Sessions</h5>
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-activity"></i> Tension Tracking</h5>
+            <button class="btn btn-sm btn-primary"
+                    hx-get="/partials/tension-session-form?build_id={{ build.id }}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML">
+                <i class="bi bi-plus-circle"></i> Add Session
+            </button>
         </div>
         <div class="card-body">
-            <div class="alert alert-info mb-0">
-                <i class="bi bi-info-circle"></i> Tension tracking feature coming soon. You'll be able to record and track spoke tension across multiple sessions.
+            {% if sessions %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-muted">Select Session</label>
+                    <select class="form-select" onchange="if(this.value) window.location.href='/build/{{ build.id }}?session=' + this.value">
+                        <option value="">-- Choose a session --</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}" {% if selected_session and selected_session.id == session.id %}selected{% endif %}>
+                            {{ session.session_name }} - {{ session.session_date.strftime('%B %d, %Y') if session.session_date else 'N/A' }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
+
+            {% if selected_session %}
+            <div class="border rounded p-3 bg-light">
+                <h6 class="text-primary mb-3"><i class="bi bi-clipboard-data"></i> Session Details</h6>
+                <div class="mb-2">
+                    <span class="text-muted">Name:</span>
+                    <span class="float-end fw-bold">{{ selected_session.session_name }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted">Date:</span>
+                    <span class="float-end fw-bold">{{ selected_session.session_date.strftime('%B %d, %Y') if selected_session.session_date else 'N/A' }}</span>
+                </div>
+                {% if selected_session.notes %}
+                <div class="mt-3">
+                    <label class="form-label fw-bold text-muted">Notes</label>
+                    <p class="mb-0 text-wrap" style="white-space: pre-wrap;">{{ selected_session.notes }}</p>
+                </div>
+                {% endif %}
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-info-circle"></i> Tension readings will be displayed here (coming in next task).
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-arrow-up"></i> Select a session from the dropdown above to view details.
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle"></i> No tension sessions yet. Click "Add Session" to create your first tension tracking session.
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -290,6 +339,9 @@
         </a>
     </div>
 </div>
+
+<!-- Modal Container for HTMX -->
+<div id="modal-container"></div>
 
 <style>
 .alert-sm {

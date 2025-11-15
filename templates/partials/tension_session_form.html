@@ -1,0 +1,42 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+            <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Create Tension Session</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="/build/{{ build_id }}/session/create">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="session_name" class="form-label">Session Name *</label>
+                    <input type="text" class="form-control" id="session_name" name="session_name" required
+                           placeholder="e.g., Initial Build, After Truing, After 50km">
+                    <small class="form-text text-muted">Give this session a descriptive name to identify when these measurements were taken.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="session_date" class="form-label">Session Date *</label>
+                    <input type="date" class="form-control" id="session_date" name="session_date"
+                           value="{{ today_date }}" required>
+                    <small class="form-text text-muted">Date when these tension measurements were taken.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="4"
+                              placeholder="Optional notes about this session (e.g., conditions, observations, adjustments made)"></textarea>
+                    <small class="form-text text-muted">Record any relevant observations or context about this tension session.</small>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> After creating this session, you'll be able to add tension readings for individual spokes.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Create Session
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

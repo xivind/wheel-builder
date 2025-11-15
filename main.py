@@ -16,9 +16,11 @@ from database_manager import (
     delete_hub, delete_rim, delete_spoke, delete_nipple,
     update_hub, update_rim, update_spoke, update_nipple,
     get_builds_using_hub, get_builds_using_rim,
-    get_builds_using_spoke, get_builds_using_nipple
+    get_builds_using_spoke, get_builds_using_nipple,
+    get_sessions_by_build, get_tension_session_by_id, create_tension_session
 )
 from business_logic import can_calculate_spoke_length, calculate_spoke_length
+from datetime import datetime
 
 app = FastAPI(title="Wheel Builder")
 
@@ -179,7 +181,7 @@ async def delete_build(build_id: str):
         return RedirectResponse(url="/", status_code=303)
 
 @app.get("/build/{build_id}", response_class=HTMLResponse)
-async def build_details(request: Request, build_id: str):
+async def build_details(request: Request, build_id: str, session: str = None):
     """Build details page showing full build information."""
     try:
         # Fetch the build
@@ -217,6 +219,17 @@ async def build_details(request: Request, build_id: str):
                 "right"
             )
 
+        # Fetch tension sessions for this build
+        sessions = get_sessions_by_build(build_id)
+
+        # If a specific session is requested, fetch it
+        selected_session = None
+        if session:
+            selected_session = get_tension_session_by_id(session)
+            # Verify session belongs to this build
+            if selected_session and selected_session.wheel_build_id != build_id:
+                selected_session = None
+
         return templates.TemplateResponse("build_details.html", {
             "request": request,
             "build": build,
@@ -227,13 +240,86 @@ async def build_details(request: Request, build_id: str):
             "can_calculate": can_calc,
             "missing_data": missing,
             "calculated_left": calculated_left,
-            "calculated_right": calculated_right
+            "calculated_right": calculated_right,
+            "sessions": sessions,
+            "selected_session": selected_session
         })
     except Exception as e:
         logger.error(f"Error loading build details: {e}")
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error_message": "Unable to load build details. Please try again later."
+        }, status_code=500)
+
+@app.get("/partials/tension-session-form", response_class=HTMLResponse)
+async def tension_session_form_partial(request: Request, build_id: str):
+    """Return tension session form modal partial for HTMX."""
+    try:
+        # Verify the build exists
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return HTMLResponse("<div class='alert alert-danger'>Build not found.</div>", status_code=404)
+
+        # Get today's date in YYYY-MM-DD format
+        today_date = datetime.now().strftime('%Y-%m-%d')
+
+        return templates.TemplateResponse("partials/tension_session_form.html", {
+            "request": request,
+            "build_id": build_id,
+            "today_date": today_date
+        })
+    except Exception as e:
+        logger.error(f"Error loading tension session form: {e}")
+        return HTMLResponse("<div class='alert alert-danger'>Unable to load form. Please try again later.</div>", status_code=500)
+
+@app.post("/build/{build_id}/session/create")
+async def create_session_route(
+    request: Request,
+    build_id: str,
+    session_name: str = Form(...),
+    session_date: str = Form(...),
+    notes: str = Form(None)
+):
+    """Create a new tension session for a build."""
+    try:
+        # Verify the build exists
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Build not found."
+            }, status_code=404)
+
+        # Convert date string to datetime object
+        try:
+            session_date_obj = datetime.strptime(session_date, '%Y-%m-%d')
+        except ValueError:
+            logger.error(f"Invalid date format: {session_date}")
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Invalid date format."
+            }, status_code=400)
+
+        # Convert empty notes to None
+        notes = notes if notes else None
+
+        # Create the tension session
+        session = create_tension_session(
+            wheel_build_id=build_id,
+            session_name=session_name,
+            session_date=session_date_obj,
+            notes=notes
+        )
+
+        logger.info(f"Created tension session: {session_name} for build {build_id} (ID: {session.id})")
+
+        # Redirect to build details with the new session selected
+        return RedirectResponse(url=f"/build/{build_id}?session={session.id}", status_code=303)
+    except Exception as e:
+        logger.error(f"Error creating tension session: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to create tension session. Please try again later."
         }, status_code=500)
 
 @app.get("/config", response_class=HTMLResponse)
