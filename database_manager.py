@@ -45,10 +45,14 @@ def update_hub(hub_id, **kwargs):
 
 def delete_hub(hub_id):
     """Delete a hub."""
-    hub = Hub.get_by_id(hub_id)
-    hub.delete_instance()
-    logger.info(f"Deleted hub: {hub_id}")
-    return True
+    try:
+        hub = Hub.get_by_id(hub_id)
+        hub.delete_instance()
+        logger.info(f"Deleted hub: {hub_id}")
+        return True
+    except Hub.DoesNotExist:
+        logger.warning(f"Cannot delete hub {hub_id}: does not exist")
+        return False
 
 def get_builds_using_hub(hub_id):
     """Get all wheel builds using this hub."""
@@ -94,10 +98,14 @@ def update_rim(rim_id, **kwargs):
 
 def delete_rim(rim_id):
     """Delete a rim."""
-    rim = Rim.get_by_id(rim_id)
-    rim.delete_instance()
-    logger.info(f"Deleted rim: {rim_id}")
-    return True
+    try:
+        rim = Rim.get_by_id(rim_id)
+        rim.delete_instance()
+        logger.info(f"Deleted rim: {rim_id}")
+        return True
+    except Rim.DoesNotExist:
+        logger.warning(f"Cannot delete rim {rim_id}: does not exist")
+        return False
 
 def get_builds_using_rim(rim_id):
     """Get all wheel builds using this rim."""
@@ -138,10 +146,14 @@ def update_spoke(spoke_id, **kwargs):
 
 def delete_spoke(spoke_id):
     """Delete a spoke."""
-    spoke = Spoke.get_by_id(spoke_id)
-    spoke.delete_instance()
-    logger.info(f"Deleted spoke: {spoke_id}")
-    return True
+    try:
+        spoke = Spoke.get_by_id(spoke_id)
+        spoke.delete_instance()
+        logger.info(f"Deleted spoke: {spoke_id}")
+        return True
+    except Spoke.DoesNotExist:
+        logger.warning(f"Cannot delete spoke {spoke_id}: does not exist")
+        return False
 
 def get_builds_using_spoke(spoke_id):
     """Get all wheel builds using this spoke."""
@@ -182,10 +194,14 @@ def update_nipple(nipple_id, **kwargs):
 
 def delete_nipple(nipple_id):
     """Delete a nipple."""
-    nipple = Nipple.get_by_id(nipple_id)
-    nipple.delete_instance()
-    logger.info(f"Deleted nipple: {nipple_id}")
-    return True
+    try:
+        nipple = Nipple.get_by_id(nipple_id)
+        nipple.delete_instance()
+        logger.info(f"Deleted nipple: {nipple_id}")
+        return True
+    except Nipple.DoesNotExist:
+        logger.warning(f"Cannot delete nipple {nipple_id}: does not exist")
+        return False
 
 def get_builds_using_nipple(nipple_id):
     """Get all wheel builds using this nipple."""
