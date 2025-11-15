@@ -1,11 +1,15 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from database_model import initialize_database, db
 from seed_data import seed_components
 from logger import logger
-from database_manager import get_all_wheel_builds, get_hubs_by_ids, get_rims_by_ids
+from database_manager import (
+    get_all_wheel_builds, get_hubs_by_ids, get_rims_by_ids,
+    get_all_hubs, get_all_rims, get_all_spokes, get_all_nipples,
+    create_wheel_build
+)
 
 app = FastAPI(title="Wheel Builder")
 
@@ -76,6 +80,58 @@ async def dashboard(request: Request):
             "request": request,
             "error_message": "Unable to load dashboard. Please try again later."
         }, status_code=500)
+
+@app.get("/partials/build-form", response_class=HTMLResponse)
+async def build_form_partial(request: Request):
+    """Return build form modal partial for HTMX."""
+    hubs = get_all_hubs()
+    rims = get_all_rims()
+    spokes = get_all_spokes()
+    nipples = get_all_nipples()
+
+    return templates.TemplateResponse("partials/build_form.html", {
+        "request": request,
+        "hubs": hubs,
+        "rims": rims,
+        "spokes": spokes,
+        "nipples": nipples
+    })
+
+@app.post("/build/create")
+async def create_build(
+    name: str = Form(...),
+    hub_id: str = Form(None),
+    rim_id: str = Form(None),
+    spoke_id: str = Form(None),
+    nipple_id: str = Form(None),
+    lacing_pattern: str = Form(None),
+    spoke_count: int = Form(None),
+    comments: str = Form(None)
+):
+    """Create a new wheel build."""
+    # Convert empty strings to None
+    hub_id = hub_id if hub_id else None
+    rim_id = rim_id if rim_id else None
+    spoke_id = spoke_id if spoke_id else None
+    nipple_id = nipple_id if nipple_id else None
+    lacing_pattern = lacing_pattern if lacing_pattern else None
+    comments = comments if comments else None
+
+    build = create_wheel_build(
+        name=name,
+        status='draft',
+        hub_id=hub_id,
+        rim_id=rim_id,
+        spoke_id=spoke_id,
+        nipple_id=nipple_id,
+        lacing_pattern=lacing_pattern,
+        spoke_count=spoke_count,
+        comments=comments
+    )
+
+    logger.info(f"Created wheel build: {name} (ID: {build.id})")
+
+    return RedirectResponse(url=f"/build/{build.id}", status_code=303)
 
 @app.get("/health")
 async def health_check():

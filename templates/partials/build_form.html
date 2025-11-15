@@ -1,0 +1,99 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+            <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Create New Wheel Build</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+        </div>
+        <form method="POST" action="/build/create">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="name" class="form-label">Build Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Commuter Primary - Rear">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="hub_id" class="form-label">Hub</label>
+                        <select class="form-select" id="hub_id" name="hub_id">
+                            <option value="">Select hub...</option>
+                            {% for hub in hubs %}
+                            <option value="{{ hub.id }}">{{ hub.make }} {{ hub.model }} ({{ hub.type }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="rim_id" class="form-label">Rim</label>
+                        <select class="form-select" id="rim_id" name="rim_id">
+                            <option value="">Select rim...</option>
+                            {% for rim in rims %}
+                            <option value="{{ rim.id }}">{{ rim.make }} {{ rim.model }} ({{ rim.holes }} holes)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="spoke_id" class="form-label">Spoke</label>
+                        <select class="form-select" id="spoke_id" name="spoke_id">
+                            <option value="">Select spoke...</option>
+                            {% for spoke in spokes %}
+                            <option value="{{ spoke.id }}">{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="nipple_id" class="form-label">Nipple</label>
+                        <select class="form-select" id="nipple_id" name="nipple_id">
+                            <option value="">Select nipple...</option>
+                            {% for nipple in nipples %}
+                            <option value="{{ nipple.id }}">{{ nipple.material }} {{ nipple.diameter }}mm {{ nipple.color }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="lacing_pattern" class="form-label">Lacing Pattern</label>
+                        <select class="form-select" id="lacing_pattern" name="lacing_pattern">
+                            <option value="">Select pattern...</option>
+                            <option value="radial">Radial</option>
+                            <option value="1-cross">1-cross</option>
+                            <option value="2-cross">2-cross</option>
+                            <option value="3-cross">3-cross</option>
+                            <option value="4-cross">4-cross</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="spoke_count" class="form-label">Spoke Count</label>
+                        <select class="form-select" id="spoke_count" name="spoke_count">
+                            <option value="">Select count...</option>
+                            <option value="24">24</option>
+                            <option value="28">28</option>
+                            <option value="32">32</option>
+                            <option value="36">36</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="comments" class="form-label">Comments</label>
+                    <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Optional notes about this build..."></textarea>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Only the build name is required. You can fill in component details later.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Create Build
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
