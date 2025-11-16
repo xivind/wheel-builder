@@ -301,6 +301,90 @@ async def build_details(request: Request, build_id: str, session: str = None):
             "error_message": "Unable to load build details. Please try again later."
         }, status_code=500)
 
+@app.get("/build/{build_id}/edit", response_class=HTMLResponse)
+async def edit_build_form(request: Request, build_id: str):
+    """Display build edit form."""
+    try:
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Build not found."
+            }, status_code=404)
+
+        # Get all components for dropdowns
+        hubs = get_all_hubs()
+        rims = get_all_rims()
+        spokes = get_all_spokes()
+        nipples = get_all_nipples()
+
+        return templates.TemplateResponse("build_edit.html", {
+            "request": request,
+            "build": build,
+            "hubs": hubs,
+            "rims": rims,
+            "spokes": spokes,
+            "nipples": nipples
+        })
+    except Exception as e:
+        logger.error(f"Error loading build edit form: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to load build edit form. Please try again later."
+        }, status_code=500)
+
+@app.post("/build/{build_id}/update")
+async def update_build_route(
+    request: Request,
+    build_id: str,
+    name: str = Form(...),
+    hub_id: Optional[str] = Form(None),
+    rim_id: Optional[str] = Form(None),
+    spoke_id: Optional[str] = Form(None),
+    nipple_id: Optional[str] = Form(None),
+    lacing_pattern: Optional[str] = Form(None),
+    spoke_count: Optional[int] = Form(None),
+    comments: Optional[str] = Form(None),
+    status: Optional[str] = Form("draft")
+):
+    """Handle build update."""
+    try:
+        # Convert empty strings to None
+        hub_id = hub_id if hub_id else None
+        rim_id = rim_id if rim_id else None
+        spoke_id = spoke_id if spoke_id else None
+        nipple_id = nipple_id if nipple_id else None
+        lacing_pattern = lacing_pattern if lacing_pattern else None
+        comments = comments if comments else None
+
+        success = update_wheel_build(
+            build_id=build_id,
+            name=name,
+            hub_id=hub_id,
+            rim_id=rim_id,
+            spoke_id=spoke_id,
+            nipple_id=nipple_id,
+            lacing_pattern=lacing_pattern,
+            spoke_count=spoke_count,
+            comments=comments,
+            status=status
+        )
+
+        if success:
+            logger.info(f"Updated build: {build_id}")
+            return RedirectResponse(url=f"/build/{build_id}", status_code=303)
+        else:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Failed to update build. Please try again."
+            }, status_code=500)
+    except Exception as e:
+        logger.error(f"Error updating build: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": f"Error updating build: {str(e)}"
+        }, status_code=500)
+
 @app.get("/partials/tension-session-form", response_class=HTMLResponse)
 async def tension_session_form_partial(request: Request, build_id: str):
     """Return tension session form modal partial for HTMX."""
