@@ -1,15 +1,21 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header" style="background-color: var(--primary-color); color: white;">
-            <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Create New Wheel Build</h5>
+            <h5 class="modal-title">
+                {% if build %}
+                <i class="bi bi-pencil"></i> Edit Wheel Build
+                {% else %}
+                <i class="bi bi-plus-circle"></i> Create New Wheel Build
+                {% endif %}
+            </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);" aria-label="Close"></button>
         </div>
-        <form method="POST" action="/build/create">
+        <form method="POST" action="{% if build %}/build/{{ build.id }}/update{% else %}/build/create{% endif %}">
             <div class="modal-body">
                 <div class="row">
                     <div class="col-12 mb-3">
                         <label for="name" class="form-label">Build Name *</label>
-                        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Commuter Primary - Rear">
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Commuter Primary - Rear" value="{{ build.name if build else '' }}">
                     </div>
                 </div>
 
@@ -19,7 +25,7 @@
                         <select class="form-select" id="hub_id" name="hub_id">
                             <option value="">Select hub...</option>
                             {% for hub in hubs %}
-                            <option value="{{ hub.id }}">{{ hub.make }} {{ hub.model }} ({{ hub.type }})</option>
+                            <option value="{{ hub.id }}" {% if build and build.hub_id == hub.id %}selected{% endif %}>{{ hub.make }} {{ hub.model }} ({{ hub.type }})</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -28,7 +34,7 @@
                         <select class="form-select" id="rim_id" name="rim_id">
                             <option value="">Select rim...</option>
                             {% for rim in rims %}
-                            <option value="{{ rim.id }}">{{ rim.make }} {{ rim.model }} ({{ rim.holes }} holes)</option>
+                            <option value="{{ rim.id }}" {% if build and build.rim_id == rim.id %}selected{% endif %}>{{ rim.make }} {{ rim.model }} ({{ rim.holes }} holes)</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -40,7 +46,7 @@
                         <select class="form-select" id="spoke_left_id" name="spoke_left_id">
                             <option value="">Select spoke...</option>
                             {% for spoke in spokes %}
-                            <option value="{{ spoke.id }}">{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
+                            <option value="{{ spoke.id }}" {% if build and build.spoke_left_id == spoke.id %}selected{% endif %}>{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -49,7 +55,7 @@
                         <select class="form-select" id="spoke_right_id" name="spoke_right_id">
                             <option value="">Select spoke...</option>
                             {% for spoke in spokes %}
-                            <option value="{{ spoke.id }}">{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
+                            <option value="{{ spoke.id }}" {% if build and build.spoke_right_id == spoke.id %}selected{% endif %}>{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -61,7 +67,7 @@
                         <select class="form-select" id="nipple_id" name="nipple_id">
                             <option value="">Select nipple...</option>
                             {% for nipple in nipples %}
-                            <option value="{{ nipple.id }}">{{ nipple.material }} {{ nipple.diameter }}mm {{ nipple.color }}</option>
+                            <option value="{{ nipple.id }}" {% if build and build.nipple_id == nipple.id %}selected{% endif %}>{{ nipple.material }} {{ nipple.diameter }}mm {{ nipple.color }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -72,28 +78,28 @@
                         <label for="lacing_pattern" class="form-label">Lacing Pattern</label>
                         <select class="form-select" id="lacing_pattern" name="lacing_pattern">
                             <option value="">Select pattern...</option>
-                            <option value="radial">Radial</option>
-                            <option value="1-cross">1-cross</option>
-                            <option value="2-cross">2-cross</option>
-                            <option value="3-cross">3-cross</option>
-                            <option value="4-cross">4-cross</option>
+                            <option value="radial" {% if build and build.lacing_pattern == 'radial' %}selected{% endif %}>Radial</option>
+                            <option value="1-cross" {% if build and build.lacing_pattern == '1-cross' %}selected{% endif %}>1-cross</option>
+                            <option value="2-cross" {% if build and build.lacing_pattern == '2-cross' %}selected{% endif %}>2-cross</option>
+                            <option value="3-cross" {% if build and build.lacing_pattern == '3-cross' %}selected{% endif %}>3-cross</option>
+                            <option value="4-cross" {% if build and build.lacing_pattern == '4-cross' %}selected{% endif %}>4-cross</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="spoke_count" class="form-label">Spoke Count</label>
                         <select class="form-select" id="spoke_count" name="spoke_count">
                             <option value="">Select count...</option>
-                            <option value="24">24</option>
-                            <option value="28">28</option>
-                            <option value="32">32</option>
-                            <option value="36">36</option>
+                            <option value="24" {% if build and build.spoke_count == 24 %}selected{% endif %}>24</option>
+                            <option value="28" {% if build and build.spoke_count == 28 %}selected{% endif %}>28</option>
+                            <option value="32" {% if build and build.spoke_count == 32 %}selected{% endif %}>32</option>
+                            <option value="36" {% if build and build.spoke_count == 36 %}selected{% endif %}>36</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="comments" class="form-label">Comments</label>
-                    <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Optional notes about this build..."></textarea>
+                    <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Optional notes about this build...">{{ build.comments if build else '' }}</textarea>
                 </div>
 
                 <div class="alert alert-info">
@@ -103,7 +109,11 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">
+                    {% if build %}
+                    <i class="bi bi-check-lg"></i> Update Build
+                    {% else %}
                     <i class="bi bi-check-lg"></i> Create Build
+                    {% endif %}
                 </button>
             </div>
         </form>

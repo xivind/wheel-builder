@@ -99,9 +99,15 @@ async def dashboard(request: Request):
         }, status_code=500)
 
 @app.get("/partials/build-form", response_class=HTMLResponse)
-async def build_form_partial(request: Request):
+async def build_form_partial(request: Request, id: str = None):
     """Return build form modal partial for HTMX."""
     try:
+        build = None
+        if id:
+            build = get_wheel_build_by_id(id)
+            if not build:
+                return HTMLResponse("<div class='alert alert-danger'>Build not found.</div>", status_code=404)
+
         hubs = get_all_hubs()
         rims = get_all_rims()
         spokes = get_all_spokes()
@@ -109,6 +115,7 @@ async def build_form_partial(request: Request):
 
         return templates.TemplateResponse("partials/build_form.html", {
             "request": request,
+            "build": build,
             "hubs": hubs,
             "rims": rims,
             "spokes": spokes,
