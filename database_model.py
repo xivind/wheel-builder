@@ -58,7 +58,8 @@ class WheelBuild(BaseModel):
     status = CharField(default='draft')  # draft, in_progress, completed
     hub_id = CharField(null=True)
     rim_id = CharField(null=True)
-    spoke_id = CharField(null=True)
+    spoke_left_id = CharField(null=True)
+    spoke_right_id = CharField(null=True)
     nipple_id = CharField(null=True)
     lacing_pattern = CharField(null=True)
     spoke_count = IntegerField(null=True)

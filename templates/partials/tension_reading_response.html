@@ -1,0 +1,86 @@
+<div id="oob-response"></div>
+
+<span id="kgf-{{side}}-{{spoke_num}}" hx-swap-oob="true">
+    {{ "%.1f"|format(kgf) }}
+</span>
+
+<span id="status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
+    <span class="badge bg-{% if range_status == 'in_range' %}success{% elif range_status == 'over' %}danger{% else %}warning{% endif %}">
+        {{ range_status|replace('_', ' ')|title }}
+    </span>
+</span>
+
+{% if stats_left and stats_left.readings|length > 0 %}
+<div class="mt-3 p-2 bg-white rounded border" id="stats-left-panel" hx-swap-oob="true">
+    <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
+    <div class="row g-2">
+        <div class="col-6">
+            <small class="text-muted">Average:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.average) }} kgf</div>
+        </div>
+        <div class="col-6">
+            <small class="text-muted">Std Dev:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.std_dev) }}</div>
+        </div>
+        <div class="col-6">
+            <small class="text-muted">Min:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.min) }} kgf</div>
+        </div>
+        <div class="col-6">
+            <small class="text-muted">Max:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.max) }} kgf</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if stats_right and stats_right.readings|length > 0 %}
+<div class="mt-3 p-2 bg-white rounded border" id="stats-right-panel" hx-swap-oob="true">
+    <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
+    <div class="row g-2">
+        <div class="col-6">
+            <small class="text-muted">Average:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.average) }} kgf</div>
+        </div>
+        <div class="col-6">
+            <small class="text-muted">Std Dev:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.std_dev) }}</div>
+        </div>
+        <div class="col-6">
+            <small class="text-muted">Min:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.min) }} kgf</div>
+        </div>
+        <div class="col-6">
+            <small class="text-muted">Max:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.max) }} kgf</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if quality_status %}
+<div class="mt-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" id="quality-status-panel" hx-swap-oob="true">
+    <h6 class="mb-2">
+        <i class="bi {% if quality_status.status == 'well_balanced' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %}"></i>
+        Quality Status: <strong>{{ quality_status.status|replace('_', ' ')|title }}</strong>
+    </h6>
+    {% if quality_status.issues %}
+    <ul class="mb-0 small">
+        {% for issue in quality_status.issues %}
+        <li>{{ issue }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endif %}
+
+<script hx-swap-oob="afterbegin:body">
+// Trigger custom event for chart update with all readings
+document.body.dispatchEvent(new CustomEvent('tensionReadingUpdated', {
+    detail: {
+        readingsLeft: {{ readings_left|tojson|safe }},
+        readingsRight: {{ readings_right|tojson|safe }},
+        maxTension: {{ tension_range.max_kgf if tension_range else 'null' }}
+    }
+}));
+</script>

@@ -169,8 +169,10 @@ def delete_spoke(spoke_id):
         return False
 
 def get_builds_using_spoke(spoke_id):
-    """Get all wheel builds using this spoke."""
-    return list(WheelBuild.select().where(WheelBuild.spoke_id == spoke_id))
+    """Get all wheel builds using this spoke (left or right)."""
+    return list(WheelBuild.select().where(
+        (WheelBuild.spoke_left_id == spoke_id) | (WheelBuild.spoke_right_id == spoke_id)
+    ))
 
 # Nipple operations
 
@@ -222,7 +224,7 @@ def get_builds_using_nipple(nipple_id):
 
 # Wheel Build operations
 
-def create_wheel_build(name, status='draft', hub_id=None, rim_id=None, spoke_id=None,
+def create_wheel_build(name, status='draft', hub_id=None, rim_id=None, spoke_left_id=None, spoke_right_id=None,
                        nipple_id=None, lacing_pattern=None, spoke_count=None,
                        actual_spoke_length_left=None, actual_spoke_length_right=None, comments=None):
     """Create a new wheel build."""
@@ -233,7 +235,8 @@ def create_wheel_build(name, status='draft', hub_id=None, rim_id=None, spoke_id=
         status=status,
         hub_id=hub_id,
         rim_id=rim_id,
-        spoke_id=spoke_id,
+        spoke_left_id=spoke_left_id,
+        spoke_right_id=spoke_right_id,
         nipple_id=nipple_id,
         lacing_pattern=lacing_pattern,
         spoke_count=spoke_count,
@@ -330,6 +333,51 @@ def get_readings_by_session(tension_session_id):
     return list(TensionReading.select()
                 .where(TensionReading.tension_session_id == tension_session_id)
                 .order_by(TensionReading.spoke_number))
+
+def upsert_tension_reading(tension_session_id, spoke_number, side, tm_reading,
+                          estimated_tension_kgf, range_status, average_deviation_status):
+    """Create or update a single tension reading for a spoke.
+
+    Args:
+        tension_session_id: Session ID
+        spoke_number: Spoke number (1-based)
+        side: 'left' or 'right'
+        tm_reading: Park Tool TM-1 reading
+        estimated_tension_kgf: Calculated tension in kgf
+        range_status: 'in_range', 'over', or 'under'
+        average_deviation_status: 'in_range', 'over', or 'under'
+
+    Returns:
+        TensionReading: The created or updated reading
+    """
+    # Try to find existing reading
+    try:
+        reading = TensionReading.get(
+            (TensionReading.tension_session_id == tension_session_id) &
+            (TensionReading.spoke_number == spoke_number) &
+            (TensionReading.side == side)
+        )
+        # Update existing reading
+        reading.tm_reading = tm_reading
+        reading.estimated_tension_kgf = estimated_tension_kgf
+        reading.range_status = range_status
+        reading.average_deviation_status = average_deviation_status
+        reading.save()
+        logger.debug(f"Updated reading for session {tension_session_id}, spoke {spoke_number} {side}")
+        return reading
+    except TensionReading.DoesNotExist:
+        # Create new reading
+        reading = create_tension_reading(
+            tension_session_id=tension_session_id,
+            spoke_number=spoke_number,
+            side=side,
+            tm_reading=tm_reading,
+            estimated_tension_kgf=estimated_tension_kgf,
+            range_status=range_status,
+            average_deviation_status=average_deviation_status
+        )
+        logger.debug(f"Created reading for session {tension_session_id}, spoke {spoke_number} {side}")
+        return reading
 
 def bulk_create_or_update_readings(tension_session_id, readings_data):
     """Bulk create or update tension readings.

@@ -21,8 +21,9 @@ def can_calculate_spoke_length(wheel_build):
         missing.append("hub")
     if not wheel_build.rim_id:
         missing.append("rim")
-    if not wheel_build.spoke_id:
-        missing.append("spoke")
+    # Need at least one spoke selected (left or right)
+    if not wheel_build.spoke_left_id and not wheel_build.spoke_right_id:
+        missing.append("spoke (left or right)")
     if not wheel_build.nipple_id:
         missing.append("nipple")
     if not wheel_build.lacing_pattern:
@@ -142,18 +143,24 @@ def calculate_recommended_spoke_lengths(wheel_build):
 
     hub = get_hub_by_id(wheel_build.hub_id)
     rim = get_rim_by_id(wheel_build.rim_id)
-    spoke = get_spoke_by_id(wheel_build.spoke_id)
+    spoke_left = get_spoke_by_id(wheel_build.spoke_left_id) if wheel_build.spoke_left_id else None
+    spoke_right = get_spoke_by_id(wheel_build.spoke_right_id) if wheel_build.spoke_right_id else None
     nipple = get_nipple_by_id(wheel_build.nipple_id)
 
+    # Use spoke_left for left calculation, or spoke_right as fallback
+    left_spoke = spoke_left or spoke_right
+    # Use spoke_right for right calculation, or spoke_left as fallback
+    right_spoke = spoke_right or spoke_left
+
     left_length = calculate_spoke_length(
-        hub, rim, spoke, nipple,
+        hub, rim, left_spoke, nipple,
         wheel_build.spoke_count,
         wheel_build.lacing_pattern,
         "left"
     )
 
     right_length = calculate_spoke_length(
-        hub, rim, spoke, nipple,
+        hub, rim, right_spoke, nipple,
         wheel_build.spoke_count,
         wheel_build.lacing_pattern,
         "right"

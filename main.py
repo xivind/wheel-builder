@@ -18,7 +18,7 @@ from database_manager import (
     get_builds_using_hub, get_builds_using_rim,
     get_builds_using_spoke, get_builds_using_nipple,
     get_sessions_by_build, get_tension_session_by_id, create_tension_session,
-    get_readings_by_session, bulk_create_or_update_readings
+    get_readings_by_session, bulk_create_or_update_readings, upsert_tension_reading
 )
 from business_logic import (
     can_calculate_spoke_length, calculate_spoke_length,
@@ -123,7 +123,8 @@ async def create_build(
     name: str = Form(...),
     hub_id: str = Form(None),
     rim_id: str = Form(None),
-    spoke_id: str = Form(None),
+    spoke_left_id: str = Form(None),
+    spoke_right_id: str = Form(None),
     nipple_id: str = Form(None),
     lacing_pattern: str = Form(None),
     spoke_count: Optional[int] = Form(None),
@@ -134,7 +135,8 @@ async def create_build(
         # Convert empty strings to None
         hub_id = hub_id if hub_id else None
         rim_id = rim_id if rim_id else None
-        spoke_id = spoke_id if spoke_id else None
+        spoke_left_id = spoke_left_id if spoke_left_id else None
+        spoke_right_id = spoke_right_id if spoke_right_id else None
         nipple_id = nipple_id if nipple_id else None
         lacing_pattern = lacing_pattern if lacing_pattern else None
         comments = comments if comments else None
@@ -144,7 +146,8 @@ async def create_build(
             status='draft',
             hub_id=hub_id,
             rim_id=rim_id,
-            spoke_id=spoke_id,
+            spoke_left_id=spoke_left_id,
+            spoke_right_id=spoke_right_id,
             nipple_id=nipple_id,
             lacing_pattern=lacing_pattern,
             spoke_count=spoke_count,
@@ -200,7 +203,8 @@ async def build_details(request: Request, build_id: str, session: str = None):
         # Fetch related components
         hub = get_hub_by_id(build.hub_id) if build.hub_id else None
         rim = get_rim_by_id(build.rim_id) if build.rim_id else None
-        spoke = get_spoke_by_id(build.spoke_id) if build.spoke_id else None
+        spoke_left = get_spoke_by_id(build.spoke_left_id) if build.spoke_left_id else None
+        spoke_right = get_spoke_by_id(build.spoke_right_id) if build.spoke_right_id else None
         nipple = get_nipple_by_id(build.nipple_id) if build.nipple_id else None
 
         # Check if we can calculate spoke length
@@ -212,22 +216,24 @@ async def build_details(request: Request, build_id: str, session: str = None):
         if can_calc:
             # Calculate spoke lengths for both sides
             calculated_left = calculate_spoke_length(
-                hub, rim, spoke, nipple,
+                hub, rim, spoke_left, nipple,
                 build.spoke_count,
                 build.lacing_pattern,
                 "left"
             )
             calculated_right = calculate_spoke_length(
-                hub, rim, spoke, nipple,
+                hub, rim, spoke_right, nipple,
                 build.spoke_count,
                 build.lacing_pattern,
                 "right"
             )
 
         # Calculate tension range if spoke and rim are available
+        # Use spoke_left if available, otherwise spoke_right (tension range is based on spoke specs, not length)
         tension_range = None
-        if spoke and rim:
-            tension_range = calculate_tension_range(spoke, rim)
+        spoke_for_tension = spoke_left or spoke_right
+        if spoke_for_tension and rim:
+            tension_range = calculate_tension_range(spoke_for_tension, rim)
 
         # Fetch tension sessions for this build
         sessions = get_sessions_by_build(build_id)
@@ -265,8 +271,8 @@ async def build_details(request: Request, build_id: str, session: str = None):
                         readings_right[reading.spoke_number] = reading_data
 
                 # Calculate statistics and quality status if we have readings
-                if readings and spoke and rim:
-                    tension_range = calculate_tension_range(spoke, rim)
+                if readings and spoke_for_tension and rim:
+                    tension_range = calculate_tension_range(spoke_for_tension, rim)
                     analysis = analyze_tension_readings(readings, tension_range)
 
                     stats_left = analysis['left']
@@ -279,7 +285,8 @@ async def build_details(request: Request, build_id: str, session: str = None):
             "build": build,
             "hub": hub,
             "rim": rim,
-            "spoke": spoke,
+            "spoke_left": spoke_left,
+            "spoke_right": spoke_right,
             "nipple": nipple,
             "can_calculate": can_calc,
             "missing_data": missing,
@@ -340,7 +347,8 @@ async def update_build_route(
     name: str = Form(...),
     hub_id: Optional[str] = Form(None),
     rim_id: Optional[str] = Form(None),
-    spoke_id: Optional[str] = Form(None),
+    spoke_left_id: Optional[str] = Form(None),
+    spoke_right_id: Optional[str] = Form(None),
     nipple_id: Optional[str] = Form(None),
     lacing_pattern: Optional[str] = Form(None),
     spoke_count: Optional[int] = Form(None),
@@ -352,7 +360,8 @@ async def update_build_route(
         # Convert empty strings to None
         hub_id = hub_id if hub_id else None
         rim_id = rim_id if rim_id else None
-        spoke_id = spoke_id if spoke_id else None
+        spoke_left_id = spoke_left_id if spoke_left_id else None
+        spoke_right_id = spoke_right_id if spoke_right_id else None
         nipple_id = nipple_id if nipple_id else None
         lacing_pattern = lacing_pattern if lacing_pattern else None
         comments = comments if comments else None
@@ -362,7 +371,8 @@ async def update_build_route(
             name=name,
             hub_id=hub_id,
             rim_id=rim_id,
-            spoke_id=spoke_id,
+            spoke_left_id=spoke_left_id,
+            spoke_right_id=spoke_right_id,
             nipple_id=nipple_id,
             lacing_pattern=lacing_pattern,
             spoke_count=spoke_count,
@@ -480,10 +490,13 @@ async def save_tension_readings(
             }, status_code=404)
 
         # Get spoke and rim for tension calculations
-        spoke = get_spoke_by_id(build.spoke_id) if build.spoke_id else None
+        # Use spoke_left if available, otherwise spoke_right (for tension range calculation)
+        spoke_left = get_spoke_by_id(build.spoke_left_id) if build.spoke_left_id else None
+        spoke_right = get_spoke_by_id(build.spoke_right_id) if build.spoke_right_id else None
+        spoke_for_tension = spoke_left or spoke_right
         rim = get_rim_by_id(build.rim_id) if build.rim_id else None
 
-        if not spoke or not rim:
+        if not spoke_for_tension or not rim:
             return templates.TemplateResponse("error.html", {
                 "request": request,
                 "error_message": "Build missing spoke or rim configuration."
@@ -493,7 +506,7 @@ async def save_tension_readings(
         form_data = await request.form()
 
         # Calculate tension range
-        tension_range = calculate_tension_range(spoke, rim)
+        tension_range = calculate_tension_range(spoke_for_tension, rim)
 
         # Collect all readings data
         readings_data = []
@@ -514,7 +527,7 @@ async def save_tension_readings(
             tm_reading = float(value)
 
             # Convert to kgf
-            kgf = tm_reading_to_kgf(tm_reading, spoke.gauge)
+            kgf = tm_reading_to_kgf(tm_reading, spoke_for_tension.gauge)
 
             # Determine range status
             if kgf < tension_range['min_kgf']:
@@ -579,6 +592,148 @@ async def save_tension_readings(
             "request": request,
             "error_message": "Unable to save tension readings. Please try again later."
         }, status_code=500)
+
+@app.post("/build/{build_id}/session/{session_id}/reading/{spoke_num}/{side}")
+async def auto_save_tension_reading(
+    request: Request,
+    build_id: str,
+    session_id: str,
+    spoke_num: int,
+    side: str,
+    tm_reading: Optional[str] = Form(None)
+):
+    """Auto-save a single tension reading and return updated HTML fragments."""
+    try:
+        logger.debug(f"Received tm_reading: '{tm_reading}' for spoke {spoke_num} {side}")
+
+        # Skip if empty value
+        if not tm_reading or tm_reading.strip() == '':
+            logger.debug(f"Empty value, skipping")
+            return HTMLResponse("<div id='oob-response'></div>", status_code=200)
+
+        # Convert to float
+        try:
+            tm_reading_float = float(tm_reading)
+            logger.debug(f"Converted to float: {tm_reading_float}")
+        except ValueError:
+            logger.error(f"Invalid number: '{tm_reading}'")
+            return HTMLResponse("Invalid number", status_code=400)
+        # Verify build and session exist
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return HTMLResponse("Build not found", status_code=404)
+
+        session = get_tension_session_by_id(session_id)
+        if not session or session.wheel_build_id != build_id:
+            return HTMLResponse("Session not found", status_code=404)
+
+        # Get spoke and rim for calculations
+        spoke_left = get_spoke_by_id(build.spoke_left_id) if build.spoke_left_id else None
+        spoke_right = get_spoke_by_id(build.spoke_right_id) if build.spoke_right_id else None
+        spoke_for_tension = spoke_left or spoke_right
+        rim = get_rim_by_id(build.rim_id) if build.rim_id else None
+
+        if not spoke_for_tension or not rim:
+            return HTMLResponse("Build missing spoke or rim", status_code=400)
+
+        # Calculate tension range and kgf
+        tension_range = calculate_tension_range(spoke_for_tension, rim)
+        kgf = tm_reading_to_kgf(tm_reading_float, spoke_for_tension.gauge)
+
+        # Determine range status
+        if kgf < tension_range['min_kgf']:
+            range_status = 'under'
+        elif kgf > tension_range['max_kgf']:
+            range_status = 'over'
+        else:
+            range_status = 'in_range'
+
+        # Get all readings to calculate average deviation
+        all_readings = get_readings_by_session(session_id)
+
+        # Build temporary list including this new reading for average calculation
+        temp_readings = []
+        for r in all_readings:
+            if r.spoke_number == spoke_num and r.side == side:
+                # Skip - we'll add the updated one
+                continue
+            temp_readings.append({'side': r.side, 'kgf': r.estimated_tension_kgf})
+
+        # Add the new/updated reading
+        temp_readings.append({'side': side, 'kgf': kgf})
+
+        # Calculate averages
+        left_tensions = [r['kgf'] for r in temp_readings if r['side'] == 'left']
+        right_tensions = [r['kgf'] for r in temp_readings if r['side'] == 'right']
+        left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
+        right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
+
+        # Determine average deviation status
+        avg = left_avg if side == 'left' else right_avg
+        if avg > 0:
+            upper_limit = avg * 1.2
+            lower_limit = avg * 0.8
+            if kgf < lower_limit:
+                avg_deviation_status = 'under'
+            elif kgf > upper_limit:
+                avg_deviation_status = 'over'
+            else:
+                avg_deviation_status = 'in_range'
+        else:
+            avg_deviation_status = 'in_range'
+
+        # WRITE TO DATABASE
+        upsert_tension_reading(
+            tension_session_id=session_id,
+            spoke_number=spoke_num,
+            side=side,
+            tm_reading=tm_reading_float,
+            estimated_tension_kgf=kgf,
+            range_status=range_status,
+            average_deviation_status=avg_deviation_status
+        )
+
+        # Fetch ALL readings again for stats calculation
+        readings = get_readings_by_session(session_id)
+        analysis = analyze_tension_readings(readings, tension_range)
+        stats_left = analysis['left']
+        stats_right = analysis['right']
+        quality_status = determine_quality_status(analysis, tension_range)
+
+        # Organize readings by side for template
+        readings_left = {}
+        readings_right = {}
+        for reading in readings:
+            reading_data = {
+                'tm_reading': reading.tm_reading,
+                'kgf': reading.estimated_tension_kgf,
+                'range_status': reading.range_status,
+                'avg_deviation_status': reading.average_deviation_status
+            }
+            if reading.side == 'left':
+                readings_left[reading.spoke_number] = reading_data
+            else:
+                readings_right[reading.spoke_number] = reading_data
+
+        # Return HTML fragments with out-of-band swaps
+        return templates.TemplateResponse("partials/tension_reading_response.html", {
+            "request": request,
+            "spoke_num": spoke_num,
+            "side": side,
+            "kgf": kgf,
+            "range_status": range_status,
+            "stats_left": stats_left,
+            "stats_right": stats_right,
+            "quality_status": quality_status,
+            "readings_left": readings_left,
+            "readings_right": readings_right,
+            "build": build,
+            "tension_range": tension_range
+        })
+
+    except Exception as e:
+        logger.error(f"Error auto-saving tension reading: {e}")
+        return HTMLResponse(f"Error: {str(e)}", status_code=500)
 
 @app.get("/config", response_class=HTMLResponse)
 async def config_page(request: Request):

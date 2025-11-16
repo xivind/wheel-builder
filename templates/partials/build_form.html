@@ -36,14 +36,26 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="spoke_id" class="form-label">Spoke</label>
-                        <select class="form-select" id="spoke_id" name="spoke_id">
+                        <label for="spoke_left_id" class="form-label">Spoke Left</label>
+                        <select class="form-select" id="spoke_left_id" name="spoke_left_id">
                             <option value="">Select spoke...</option>
                             {% for spoke in spokes %}
                             <option value="{{ spoke.id }}">{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="spoke_right_id" class="form-label">Spoke Right</label>
+                        <select class="form-select" id="spoke_right_id" name="spoke_right_id">
+                            <option value="">Select spoke...</option>
+                            {% for spoke in spokes %}
+                            <option value="{{ spoke.id }}">{{ spoke.material }} {{ spoke.gauge }} - {{ spoke.length }}mm</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="nipple_id" class="form-label">Nipple</label>
                         <select class="form-select" id="nipple_id" name="nipple_id">

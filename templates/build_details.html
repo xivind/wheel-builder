@@ -131,27 +131,15 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light">
-                        <h6 class="text-primary mb-3"><i class="bi bi-slash-lg"></i> Spoke</h6>
-                        {% if spoke %}
+                        <h6 class="text-primary mb-3"><i class="bi bi-asterisk"></i> Lacing Configuration</h6>
                         <div class="mb-2">
-                            <span class="text-muted">Material:</span>
-                            <span class="float-end fw-bold">{{ spoke.material|title }}</span>
+                            <span class="text-muted">Pattern:</span>
+                            <span class="float-end fw-bold">{{ build.lacing_pattern|replace('-', ' ')|title if build.lacing_pattern else 'Not set' }}</span>
                         </div>
                         <div class="mb-2">
-                            <span class="text-muted">Gauge:</span>
-                            <span class="float-end fw-bold">{{ spoke.gauge }}</span>
+                            <span class="text-muted">Spoke Count:</span>
+                            <span class="float-end fw-bold">{{ build.spoke_count if build.spoke_count else 'Not set' }}</span>
                         </div>
-                        <div class="mb-2">
-                            <span class="text-muted">Length:</span>
-                            <span class="float-end fw-bold">{{ spoke.length }}mm</span>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-muted">Max Tension:</span>
-                            <span class="float-end fw-bold">{{ spoke.max_tension }} kgf</span>
-                        </div>
-                        {% else %}
-                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
-                        {% endif %}
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -179,19 +167,54 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light">
-                        <h6 class="text-primary mb-3"><i class="bi bi-asterisk"></i> Lacing Configuration</h6>
+                        <h6 class="text-primary mb-3"><i class="bi bi-arrow-left"></i> Spoke Left</h6>
+                        {% if spoke_left %}
                         <div class="mb-2">
-                            <span class="text-muted">Pattern:</span>
-                            <span class="float-end fw-bold">{{ build.lacing_pattern|replace('-', ' ')|title if build.lacing_pattern else 'Not set' }}</span>
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.material|title }}</span>
                         </div>
                         <div class="mb-2">
-                            <span class="text-muted">Spoke Count:</span>
-                            <span class="float-end fw-bold">{{ build.spoke_count if build.spoke_count else 'Not set' }}</span>
+                            <span class="text-muted">Gauge:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.gauge }}</span>
                         </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Length:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.length }}mm</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Max Tension:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.max_tension }} kgf</span>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="border rounded p-3 bg-light">
+                        <h6 class="text-primary mb-3"><i class="bi bi-arrow-right"></i> Spoke Right</h6>
+                        {% if spoke_right %}
+                        <div class="mb-2">
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.material|title }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Gauge:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.gauge }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Length:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.length }}mm</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Max Tension:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.max_tension }} kgf</span>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -213,14 +236,25 @@
                             <span class="text-muted">Calculated Length:</span>
                             <span class="float-end fw-bold fs-5 text-primary">{{ calculated_left }}mm</span>
                         </div>
-                        {% if build.actual_spoke_length_left %}
+                        {% if spoke_left %}
                         <div class="mb-2">
-                            <span class="text-muted">Actual Length Used:</span>
-                            <span class="float-end fw-bold text-success">{{ build.actual_spoke_length_left }}mm</span>
+                            <span class="text-muted">Selected Spoke Length:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.length }}mm</span>
                         </div>
+                        {% if spoke_left.length != calculated_left %}
+                        <div class="alert alert-warning alert-sm mb-0 mt-2">
+                            <small><i class="bi bi-exclamation-triangle"></i>
+                            {% if spoke_left.length > calculated_left %}
+                                Selected spoke is {{ spoke_left.length - calculated_left }}mm longer than recommended
+                            {% else %}
+                                Selected spoke is {{ calculated_left - spoke_left.length }}mm shorter than recommended
+                            {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
                         {% else %}
                         <div class="alert alert-info alert-sm mb-0 mt-2">
-                            <small><i class="bi bi-info-circle"></i> No actual spoke length entered yet</small>
+                            <small><i class="bi bi-info-circle"></i> No spoke selected yet</small>
                         </div>
                         {% endif %}
                     </div>
@@ -232,14 +266,25 @@
                             <span class="text-muted">Calculated Length:</span>
                             <span class="float-end fw-bold fs-5 text-primary">{{ calculated_right }}mm</span>
                         </div>
-                        {% if build.actual_spoke_length_right %}
+                        {% if spoke_right %}
                         <div class="mb-2">
-                            <span class="text-muted">Actual Length Used:</span>
-                            <span class="float-end fw-bold text-success">{{ build.actual_spoke_length_right }}mm</span>
+                            <span class="text-muted">Selected Spoke Length:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.length }}mm</span>
                         </div>
+                        {% if spoke_right.length != calculated_right %}
+                        <div class="alert alert-warning alert-sm mb-0 mt-2">
+                            <small><i class="bi bi-exclamation-triangle"></i>
+                            {% if spoke_right.length > calculated_right %}
+                                Selected spoke is {{ spoke_right.length - calculated_right }}mm longer than recommended
+                            {% else %}
+                                Selected spoke is {{ calculated_right - spoke_right.length }}mm shorter than recommended
+                            {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
                         {% else %}
                         <div class="alert alert-info alert-sm mb-0 mt-2">
-                            <small><i class="bi bi-info-circle"></i> No actual spoke length entered yet</small>
+                            <small><i class="bi bi-info-circle"></i> No spoke selected yet</small>
                         </div>
                         {% endif %}
                     </div>
@@ -314,6 +359,9 @@
                 <i class="bi bi-exclamation-triangle"></i> Please set the spoke count in the build configuration to enter tension readings.
             </div>
             {% else %}
+            <!-- Hidden target for HTMX responses -->
+            <div id="htmx-response-container" style="display:none;"></div>
+
             <!-- Tension Readings Entry -->
             <form method="POST" action="/build/{{ build.id }}/session/{{ selected_session.id }}/readings">
                 <div class="row">
@@ -335,24 +383,33 @@
                                     <tr>
                                         <td class="align-middle">{{ i }}</td>
                                         <td>
-                                            <input type="number" step="0.1" min="0" class="form-control form-control-sm"
-                                                   name="tm_{{ i }}_left"
-                                                   value="{{ readings_left.get(i, {}).get('tm_reading', '') }}"
-                                                   style="max-width: 80px;">
+                                            <form hx-post="/build/{{ build.id }}/session/{{ selected_session.id }}/reading/{{ i }}/left"
+                                                  hx-trigger="blur changed delay:300ms from:find input"
+                                                  hx-target="#htmx-response-container"
+                                                  hx-swap="innerHTML">
+                                                <input type="number" step="0.1" min="0" class="form-control form-control-sm"
+                                                       name="tm_reading"
+                                                       value="{{ readings_left.get(i, {}).get('tm_reading', '') }}"
+                                                       style="max-width: 80px;">
+                                            </form>
                                         </td>
                                         <td class="align-middle">
+                                            <span id="kgf-left-{{ i }}">
                                             {% if readings_left.get(i, {}).get('kgf') %}
                                                 {{ "%.1f"|format(readings_left[i]['kgf']) }}
                                             {% else %}
                                                 -
                                             {% endif %}
+                                            </span>
                                         </td>
                                         <td class="align-middle">
+                                            <span id="status-left-{{ i }}">
                                             {% if readings_left.get(i, {}).get('range_status') %}
                                                 <span class="badge bg-{% if readings_left[i].range_status == 'in_range' %}success{% elif readings_left[i].range_status == 'over' %}danger{% else %}warning{% endif %}">
                                                     {{ readings_left[i].range_status|replace('_', ' ')|title }}
                                                 </span>
                                             {% endif %}
+                                            </span>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -361,7 +418,7 @@
                         </div>
 
                         {% if stats_left %}
-                        <div class="mt-3 p-2 bg-white rounded border">
+                        <div class="mt-3 p-2 bg-white rounded border" id="stats-left-panel">
                             <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
                             <div class="row g-2">
                                 <div class="col-6">
@@ -403,24 +460,33 @@
                                     <tr>
                                         <td class="align-middle">{{ i }}</td>
                                         <td>
-                                            <input type="number" step="0.1" min="0" class="form-control form-control-sm"
-                                                   name="tm_{{ i }}_right"
-                                                   value="{{ readings_right.get(i, {}).get('tm_reading', '') }}"
-                                                   style="max-width: 80px;">
+                                            <form hx-post="/build/{{ build.id }}/session/{{ selected_session.id }}/reading/{{ i }}/right"
+                                                  hx-trigger="blur changed delay:300ms from:find input"
+                                                  hx-target="#htmx-response-container"
+                                                  hx-swap="innerHTML">
+                                                <input type="number" step="0.1" min="0" class="form-control form-control-sm"
+                                                       name="tm_reading"
+                                                       value="{{ readings_right.get(i, {}).get('tm_reading', '') }}"
+                                                       style="max-width: 80px;">
+                                            </form>
                                         </td>
                                         <td class="align-middle">
+                                            <span id="kgf-right-{{ i }}">
                                             {% if readings_right.get(i, {}).get('kgf') %}
                                                 {{ "%.1f"|format(readings_right[i]['kgf']) }}
                                             {% else %}
                                                 -
                                             {% endif %}
+                                            </span>
                                         </td>
                                         <td class="align-middle">
+                                            <span id="status-right-{{ i }}">
                                             {% if readings_right.get(i, {}).get('range_status') %}
                                                 <span class="badge bg-{% if readings_right[i].range_status == 'in_range' %}success{% elif readings_right[i].range_status == 'over' %}danger{% else %}warning{% endif %}">
                                                     {{ readings_right[i].range_status|replace('_', ' ')|title }}
                                                 </span>
                                             {% endif %}
+                                            </span>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -429,7 +495,7 @@
                         </div>
 
                         {% if stats_right %}
-                        <div class="mt-3 p-2 bg-white rounded border">
+                        <div class="mt-3 p-2 bg-white rounded border" id="stats-right-panel">
                             <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
                             <div class="row g-2">
                                 <div class="col-6">
@@ -468,7 +534,7 @@
 
                 <!-- Quality Indicators -->
                 {% if quality_status %}
-                <div class="mt-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
+                <div class="mt-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" id="quality-status-panel">
                     <h6 class="mb-2">
                         <i class="bi {% if quality_status.status == 'well_balanced' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %}"></i>
                         Quality Status: <strong>{{ quality_status.status|replace('_', ' ')|title }}</strong>
@@ -482,13 +548,6 @@
                     {% endif %}
                 </div>
                 {% endif %}
-
-                <!-- Save Button -->
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Save Readings
-                    </button>
-                </div>
             </form>
             {% endif %}
             {% else %}
@@ -564,6 +623,34 @@ document.addEventListener('DOMContentLoaded', function() {
     if (leftReadings.length > 0 || rightReadings.length > 0) {
         initTensionChart(leftReadings, rightReadings, labels, labels, null, recommendedMax);
     }
+
+    // Listen for tension reading updates from HTMX auto-save
+    document.body.addEventListener('tensionReadingUpdated', function(event) {
+        const readingsLeft = event.detail.readingsLeft || {};
+        const readingsRight = event.detail.readingsRight || {};
+        const maxTension = event.detail.maxTension;
+
+        // Extract kgf values from readings objects
+        const leftVals = [];
+        const rightVals = [];
+        const spokeLabels = [];
+
+        // Build arrays from readings dictionaries
+        for (let i = 1; i <= {{ (build.spoke_count // 2) }}; i++) {
+            spokeLabels.push(i.toString());
+            if (readingsLeft[i] && readingsLeft[i].kgf !== undefined) {
+                leftVals.push(readingsLeft[i].kgf);
+            }
+            if (readingsRight[i] && readingsRight[i].kgf !== undefined) {
+                rightVals.push(readingsRight[i].kgf);
+            }
+        }
+
+        // Redraw chart with updated data
+        if (leftVals.length > 0 || rightVals.length > 0) {
+            initTensionChart(leftVals, rightVals, spokeLabels, spokeLabels, null, maxTension);
+        }
+    });
 });
 </script>
 {% endif %}
