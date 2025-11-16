@@ -361,6 +361,8 @@
             {% else %}
             <!-- Hidden target for HTMX responses -->
             <div id="htmx-response-container" style="display:none;"></div>
+            <!-- Hidden div for chart data updates -->
+            <div id="chart-data-trigger" style="display:none;"></div>
 
             <!-- Tension Readings Entry -->
             <div class="row">
@@ -598,16 +600,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const leftReadings = [
         {% for i in range(1, (build.spoke_count // 2) + 1) %}
             {% if readings_left.get(i) and readings_left[i].get('kgf') %}
-                {{ readings_left[i]['kgf'] }}{% if not loop.last %},{% endif %}
+                {{ readings_left[i]['kgf'] }}
+            {% else %}
+                null
             {% endif %}
+            {% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
     const rightReadings = [
         {% for i in range(1, (build.spoke_count // 2) + 1) %}
             {% if readings_right.get(i) and readings_right[i].get('kgf') %}
-                {{ readings_right[i]['kgf'] }}{% if not loop.last %},{% endif %}
+                {{ readings_right[i]['kgf'] }}
+            {% else %}
+                null
             {% endif %}
+            {% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
@@ -623,31 +631,51 @@ document.addEventListener('DOMContentLoaded', function() {
         initTensionChart(leftReadings, rightReadings, labels, labels, null, recommendedMax);
     }
 
-    // Listen for tension reading updates from HTMX auto-save
-    document.body.addEventListener('tensionReadingUpdated', function(event) {
-        const readingsLeft = event.detail.readingsLeft || {};
-        const readingsRight = event.detail.readingsRight || {};
-        const maxTension = event.detail.maxTension;
+    // Listen for HTMX swap events to update chart
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        // Check if this was an OOB swap that might have updated chart data
+        const chartTrigger = document.getElementById('chart-data-trigger');
+        if (!chartTrigger) return;
 
-        // Extract kgf values from readings objects
-        const leftVals = [];
-        const rightVals = [];
-        const spokeLabels = [];
+        const readingsLeftStr = chartTrigger.getAttribute('data-readings-left');
+        const readingsRightStr = chartTrigger.getAttribute('data-readings-right');
+        const maxTensionStr = chartTrigger.getAttribute('data-max-tension');
 
-        // Build arrays from readings dictionaries
-        for (let i = 1; i <= {{ (build.spoke_count // 2) }}; i++) {
-            spokeLabels.push(i.toString());
-            if (readingsLeft[i] && readingsLeft[i].kgf !== undefined) {
-                leftVals.push(readingsLeft[i].kgf);
+        if (!readingsLeftStr && !readingsRightStr) return;
+
+        try {
+            const readingsLeft = readingsLeftStr ? JSON.parse(readingsLeftStr) : {};
+            const readingsRight = readingsRightStr ? JSON.parse(readingsRightStr) : {};
+            const maxTension = maxTensionStr !== 'null' ? parseFloat(maxTensionStr) : null;
+
+            // Extract kgf values from readings objects
+            const leftVals = [];
+            const rightVals = [];
+            const spokeLabels = [];
+
+            // Build arrays from readings dictionaries
+            // IMPORTANT: Push null for missing readings to maintain index alignment
+            for (let i = 1; i <= {{ (build.spoke_count // 2) }}; i++) {
+                spokeLabels.push(i.toString());
+                if (readingsLeft[i] && readingsLeft[i].kgf !== undefined) {
+                    leftVals.push(readingsLeft[i].kgf);
+                } else {
+                    leftVals.push(null);
+                }
+                if (readingsRight[i] && readingsRight[i].kgf !== undefined) {
+                    rightVals.push(readingsRight[i].kgf);
+                } else {
+                    rightVals.push(null);
+                }
             }
-            if (readingsRight[i] && readingsRight[i].kgf !== undefined) {
-                rightVals.push(readingsRight[i].kgf);
-            }
-        }
 
-        // Redraw chart with updated data
-        if (leftVals.length > 0 || rightVals.length > 0) {
-            initTensionChart(leftVals, rightVals, spokeLabels, spokeLabels, null, maxTension);
+            // Redraw chart with updated data
+            if (leftVals.length > 0 || rightVals.length > 0) {
+                console.log('Updating chart with', leftVals.length, 'left readings and', rightVals.length, 'right readings');
+                initTensionChart(leftVals, rightVals, spokeLabels, spokeLabels, null, maxTension);
+            }
+        } catch (e) {
+            console.error('Error updating chart:', e);
         }
     });
 });

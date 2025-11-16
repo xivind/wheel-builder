@@ -1,11 +1,19 @@
 // Wheel Builder JavaScript
 
+// Global chart instance
+let tensionChartInstance = null;
+
 /**
  * Initialize tension radar chart
  */
 function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, recommendedMin, recommendedMax) {
     const ctx = document.getElementById('tensionChart');
     if (!ctx) return;
+
+    // Destroy existing chart if it exists
+    if (tensionChartInstance) {
+        tensionChartInstance.destroy();
+    }
 
     // Prepare datasets
     const datasets = [];
@@ -52,7 +60,7 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
         });
     }
 
-    new Chart(ctx, {
+    tensionChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
             labels: leftLabels || rightLabels || [],

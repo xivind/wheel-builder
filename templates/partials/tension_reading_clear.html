@@ -71,13 +71,9 @@
 </div>
 {% endif %}
 
-<script hx-swap-oob="afterbegin:body">
-// Trigger custom event for chart update with all readings
-document.body.dispatchEvent(new CustomEvent('tensionReadingUpdated', {
-    detail: {
-        readingsLeft: {{ readings_left|tojson|safe }},
-        readingsRight: {{ readings_right|tojson|safe }},
-        maxTension: {{ tension_range.max_kgf if tension_range else 'null' }}
-    }
-}));
-</script>
+<div id="chart-data-trigger"
+     hx-swap-oob="true"
+     data-readings-left='{{ readings_left|tojson|safe }}'
+     data-readings-right='{{ readings_right|tojson|safe }}'
+     data-max-tension='{{ tension_range.max_kgf if tension_range else "null" }}'
+     style="display:none;"></div>
