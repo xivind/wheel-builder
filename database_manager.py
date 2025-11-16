@@ -379,6 +379,30 @@ def upsert_tension_reading(tension_session_id, spoke_number, side, tm_reading,
         logger.debug(f"Created reading for session {tension_session_id}, spoke {spoke_number} {side}")
         return reading
 
+def delete_tension_reading(tension_session_id, spoke_number, side):
+    """Delete a single tension reading.
+
+    Args:
+        tension_session_id: Session ID
+        spoke_number: Spoke number
+        side: 'left' or 'right'
+
+    Returns:
+        bool: True if deleted, False if not found
+    """
+    try:
+        reading = TensionReading.get(
+            (TensionReading.tension_session_id == tension_session_id) &
+            (TensionReading.spoke_number == spoke_number) &
+            (TensionReading.side == side)
+        )
+        reading.delete_instance()
+        logger.debug(f"Deleted reading for session {tension_session_id}, spoke {spoke_number} {side}")
+        return True
+    except TensionReading.DoesNotExist:
+        logger.debug(f"No reading found to delete for session {tension_session_id}, spoke {spoke_number} {side}")
+        return False
+
 def bulk_create_or_update_readings(tension_session_id, readings_data):
     """Bulk create or update tension readings.
 

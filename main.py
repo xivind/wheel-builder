@@ -18,7 +18,8 @@ from database_manager import (
     get_builds_using_hub, get_builds_using_rim,
     get_builds_using_spoke, get_builds_using_nipple,
     get_sessions_by_build, get_tension_session_by_id, create_tension_session,
-    get_readings_by_session, bulk_create_or_update_readings, upsert_tension_reading
+    get_readings_by_session, bulk_create_or_update_readings, upsert_tension_reading,
+    delete_tension_reading
 )
 from business_logic import (
     can_calculate_spoke_length, calculate_spoke_length,
@@ -606,10 +607,68 @@ async def auto_save_tension_reading(
     try:
         logger.debug(f"Received tm_reading: '{tm_reading}' for spoke {spoke_num} {side}")
 
-        # Skip if empty value
+        # Handle deletion if empty value
         if not tm_reading or tm_reading.strip() == '':
-            logger.debug(f"Empty value, skipping")
-            return HTMLResponse("<div id='oob-response'></div>", status_code=200)
+            logger.debug(f"Empty value, deleting reading if exists")
+
+            # Verify build and session exist
+            build = get_wheel_build_by_id(build_id)
+            if not build:
+                return HTMLResponse("Build not found", status_code=404)
+
+            session = get_tension_session_by_id(session_id)
+            if not session or session.wheel_build_id != build_id:
+                return HTMLResponse("Session not found", status_code=404)
+
+            # Delete the reading
+            delete_tension_reading(session_id, spoke_num, side)
+
+            # Get spoke and rim for stats calculation
+            spoke_left = get_spoke_by_id(build.spoke_left_id) if build.spoke_left_id else None
+            spoke_right = get_spoke_by_id(build.spoke_right_id) if build.spoke_right_id else None
+            spoke_for_tension = spoke_left or spoke_right
+            rim = get_rim_by_id(build.rim_id) if build.rim_id else None
+
+            if not spoke_for_tension or not rim:
+                return HTMLResponse("Build missing spoke or rim", status_code=400)
+
+            tension_range = calculate_tension_range(spoke_for_tension, rim)
+
+            # Fetch ALL readings again for stats calculation
+            readings = get_readings_by_session(session_id)
+            analysis = analyze_tension_readings(readings, tension_range)
+            stats_left = analysis['left']
+            stats_right = analysis['right']
+            quality_status = determine_quality_status(analysis, tension_range)
+
+            # Organize readings by side for template
+            readings_left = {}
+            readings_right = {}
+            for reading in readings:
+                reading_data = {
+                    'tm_reading': reading.tm_reading,
+                    'kgf': reading.estimated_tension_kgf,
+                    'range_status': reading.range_status,
+                    'avg_deviation_status': reading.average_deviation_status
+                }
+                if reading.side == 'left':
+                    readings_left[reading.spoke_number] = reading_data
+                else:
+                    readings_right[reading.spoke_number] = reading_data
+
+            # Return OOB swaps with cleared values
+            return templates.TemplateResponse("partials/tension_reading_clear.html", {
+                "request": request,
+                "spoke_num": spoke_num,
+                "side": side,
+                "stats_left": stats_left,
+                "stats_right": stats_right,
+                "quality_status": quality_status,
+                "readings_left": readings_left,
+                "readings_right": readings_right,
+                "build": build,
+                "tension_range": tension_range
+            })
 
         # Convert to float
         try:

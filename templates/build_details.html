@@ -363,8 +363,7 @@
             <div id="htmx-response-container" style="display:none;"></div>
 
             <!-- Tension Readings Entry -->
-            <form method="POST" action="/build/{{ build.id }}/session/{{ selected_session.id }}/readings">
-                <div class="row">
+            <div class="row">
                     <!-- Left Side -->
                     <div class="col-md-6">
                         <h6 class="text-secondary mb-3"><i class="bi bi-arrow-left"></i> Left Side Spokes</h6>
@@ -548,7 +547,7 @@
                     {% endif %}
                 </div>
                 {% endif %}
-            </form>
+            </div>
             {% endif %}
             {% else %}
             <div class="alert alert-info mb-0">
