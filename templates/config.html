@@ -46,8 +46,8 @@
                             hx-get="/partials/hub-form"
                             hx-target="#component-modal-container"
                             hx-swap="innerHTML"
-                            data-bs-toggle="modal"
-                            data-bs-target="#component-modal">
+                            
+                            >
                         <i class="bi bi-plus-lg"></i> Add New Hub
                     </button>
                 </div>
@@ -90,8 +90,8 @@
                                                 hx-get="/partials/hub-form?id={{ hub.id }}"
                                                 hx-target="#component-modal-container"
                                                 hx-swap="innerHTML"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#component-modal"
+                                                
+                                                
                                                 {% if hub.locked %}disabled title="Cannot edit - used by {{ hub.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -125,8 +125,8 @@
                             hx-get="/partials/rim-form"
                             hx-target="#component-modal-container"
                             hx-swap="innerHTML"
-                            data-bs-toggle="modal"
-                            data-bs-target="#component-modal">
+                            
+                            >
                         <i class="bi bi-plus-lg"></i> Add New Rim
                     </button>
                 </div>
@@ -169,8 +169,8 @@
                                                 hx-get="/partials/rim-form?id={{ rim.id }}"
                                                 hx-target="#component-modal-container"
                                                 hx-swap="innerHTML"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#component-modal"
+                                                
+                                                
                                                 {% if rim.locked %}disabled title="Cannot edit - used by {{ rim.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -204,8 +204,8 @@
                             hx-get="/partials/spoke-form"
                             hx-target="#component-modal-container"
                             hx-swap="innerHTML"
-                            data-bs-toggle="modal"
-                            data-bs-target="#component-modal">
+                            
+                            >
                         <i class="bi bi-plus-lg"></i> Add New Spoke
                     </button>
                 </div>
@@ -238,8 +238,8 @@
                                                 hx-get="/partials/spoke-form?id={{ spoke.id }}"
                                                 hx-target="#component-modal-container"
                                                 hx-swap="innerHTML"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#component-modal"
+                                                
+                                                
                                                 {% if spoke.locked %}disabled title="Cannot edit - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -273,8 +273,8 @@
                             hx-get="/partials/nipple-form"
                             hx-target="#component-modal-container"
                             hx-swap="innerHTML"
-                            data-bs-toggle="modal"
-                            data-bs-target="#component-modal">
+                            
+                            >
                         <i class="bi bi-plus-lg"></i> Add New Nipple
                     </button>
                 </div>
@@ -307,8 +307,8 @@
                                                 hx-get="/partials/nipple-form?id={{ nipple.id }}"
                                                 hx-target="#component-modal-container"
                                                 hx-swap="innerHTML"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#component-modal"
+                                                
+                                                
                                                 {% if nipple.locked %}disabled title="Cannot edit - used by {{ nipple.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>

@@ -100,3 +100,23 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
 document.addEventListener('DOMContentLoaded', function() {
     // Chart will be initialized from inline script in template
 });
+
+/**
+ * Show Bootstrap modal after HTMX loads content
+ * This fixes the issue where modals freeze when triggered before content loads
+ */
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    // Check if the swap target is a modal container
+    const targetId = event.detail.target.id;
+
+    if (targetId === 'build-modal-container') {
+        const modal = new bootstrap.Modal(document.getElementById('build-modal'));
+        modal.show();
+    } else if (targetId === 'component-modal-container') {
+        const modal = new bootstrap.Modal(document.getElementById('component-modal'));
+        modal.show();
+    } else if (targetId === 'session-modal-container') {
+        const modal = new bootstrap.Modal(document.getElementById('session-modal'));
+        modal.show();
+    }
+});
