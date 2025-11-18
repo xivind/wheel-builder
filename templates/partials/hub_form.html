@@ -43,7 +43,7 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="old" class="form-label">Over Locknut Distance (OLD) <span class="text-danger">*</span></label>
+                        <label for="old" class="form-label">Over Locknut Distance (OLD) (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="old" name="old"
                                value="{% if hub %}{{ hub.old }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
@@ -51,14 +51,14 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="left_flange_diameter" class="form-label">Left Flange Diameter <span class="text-danger">*</span></label>
+                        <label for="left_flange_diameter" class="form-label">Left Flange Diameter (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="left_flange_diameter"
                                name="left_flange_diameter"
                                value="{% if hub %}{{ hub.left_flange_diameter }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="right_flange_diameter" class="form-label">Right Flange Diameter <span class="text-danger">*</span></label>
+                        <label for="right_flange_diameter" class="form-label">Right Flange Diameter (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="right_flange_diameter"
                                name="right_flange_diameter"
                                value="{% if hub %}{{ hub.right_flange_diameter }}{% endif %}"
@@ -67,14 +67,14 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="left_flange_offset" class="form-label">Left Flange Offset <span class="text-danger">*</span></label>
+                        <label for="left_flange_offset" class="form-label">Left Flange Offset (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="left_flange_offset"
                                name="left_flange_offset"
                                value="{% if hub %}{{ hub.left_flange_offset }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="right_flange_offset" class="form-label">Right Flange Offset <span class="text-danger">*</span></label>
+                        <label for="right_flange_offset" class="form-label">Right Flange Offset (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="right_flange_offset"
                                name="right_flange_offset"
                                value="{% if hub %}{{ hub.right_flange_offset }}{% endif %}"
@@ -83,7 +83,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="spoke_hole_diameter" class="form-label">Spoke Hole Diameter <span class="text-danger">*</span></label>
+                        <label for="spoke_hole_diameter" class="form-label">Spoke Hole Diameter (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="spoke_hole_diameter"
                                name="spoke_hole_diameter"
                                value="{% if hub %}{{ hub.spoke_hole_diameter }}{% endif %}"

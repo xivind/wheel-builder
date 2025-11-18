@@ -43,7 +43,7 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="erd" class="form-label">Effective Rim Diameter (ERD) <span class="text-danger">*</span></label>
+                        <label for="erd" class="form-label">Effective Rim Diameter (ERD) (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="erd" name="erd"
                                value="{% if rim %}{{ rim.erd }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
@@ -51,14 +51,14 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="osb" class="form-label">Offset Spoke Bed (OSB) <span class="text-danger">*</span></label>
+                        <label for="osb" class="form-label">Offset Spoke Bed (OSB) (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="osb" name="osb"
                                value="{% if rim %}{{ rim.osb }}{% endif %}"
                                placeholder="mm (0 for symmetric)" {% if locked %}disabled{% else %}required{% endif %}>
                         <small class="form-text text-muted">0 for symmetric rims</small>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="inner_width" class="form-label">Inner Width <span class="text-danger">*</span></label>
+                        <label for="inner_width" class="form-label">Inner Width (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="inner_width" name="inner_width"
                                value="{% if rim %}{{ rim.inner_width }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
@@ -66,7 +66,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="outer_width" class="form-label">Outer Width <span class="text-danger">*</span></label>
+                        <label for="outer_width" class="form-label">Outer Width (mm) <span class="text-danger">*</span></label>
                         <input type="number" step="0.1" class="form-control" id="outer_width" name="outer_width"
                                value="{% if rim %}{{ rim.outer_width }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>

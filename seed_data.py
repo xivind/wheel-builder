@@ -56,11 +56,11 @@ def seed_components():
 
     # Seed Spokes
     spokes_data = [
-        {"material": "Steel", "gauge": "2.0 mm", "max_tension": 120, "length": 282},
-        {"material": "Steel", "gauge": "2.0 mm", "max_tension": 120, "length": 286},
-        {"material": "Stainless Steel", "gauge": "2.0/1.8/2.0 mm", "max_tension": 130, "length": 282},
-        {"material": "Steel", "gauge": "1.8 mm", "max_tension": 100, "length": 282},
-        {"material": "Titanium", "gauge": "2.0 mm", "max_tension": 140, "length": 282},
+        {"material": "Steel", "gauge": 2.0, "max_tension": 120, "length": 282},
+        {"material": "Steel", "gauge": 2.0, "max_tension": 120, "length": 286},
+        {"material": "Stainless Steel", "gauge": 1.8, "max_tension": 130, "length": 282},  # 2.0/1.8/2.0 butted - use thinnest
+        {"material": "Steel", "gauge": 1.8, "max_tension": 100, "length": 282},
+        {"material": "Titanium", "gauge": 2.0, "max_tension": 140, "length": 282},
     ]
 
     for spoke_data in spokes_data:

@@ -39,7 +39,7 @@ class Rim(BaseModel):
 class Spoke(BaseModel):
     id = CharField(primary_key=True)
     material = CharField()
-    gauge = CharField()
+    gauge = FloatField()  # mm - for butted spokes, use thinnest diameter
     max_tension = FloatField()  # kgf
     length = FloatField()  # mm
 

@@ -196,7 +196,7 @@ def calculate_tension_range(spoke, rim):
     # Placeholder conversion to Park Tool TM-1 readings
     # Actual conversion depends on spoke gauge and type
     # This is simplified: divide kgf by a factor
-    gauge_num = float(spoke.gauge.split()[0])  # Extract first number from gauge
+    gauge_num = spoke.gauge  # gauge is now stored as numeric (mm)
     conversion_factor = 4.5 if gauge_num >= 2.0 else 5.0
 
     min_tm = min_tension / conversion_factor
@@ -309,17 +309,12 @@ def tm_reading_to_kgf(tm_reading, spoke_gauge):
 
     Args:
         tm_reading: Park Tool TM-1 reading (0-50 range)
-        spoke_gauge: Spoke gauge string (e.g., "2.0mm", "1.8mm")
+        spoke_gauge: Spoke gauge in mm (e.g., 2.0, 1.8)
 
     Returns:
         float: Estimated tension in kgf
     """
-    # Extract numeric gauge value
-    try:
-        gauge_num = float(spoke_gauge.split()[0])
-    except (ValueError, IndexError):
-        # Default to 2.0mm if parsing fails
-        gauge_num = 2.0
+    gauge_num = spoke_gauge  # gauge is now stored as numeric (mm)
 
     # Simplified conversion factor based on gauge
     # For 2.0mm spokes: multiply by ~10
@@ -336,6 +331,6 @@ def tm_reading_to_kgf(tm_reading, spoke_gauge):
 
     kgf = tm_reading * conversion_factor
 
-    logger.debug(f"TM reading {tm_reading} with gauge {spoke_gauge} = {kgf:.1f} kgf")
+    logger.debug(f"TM reading {tm_reading} with gauge {spoke_gauge} mm = {kgf:.1f} kgf")
 
     return round(kgf, 1)
