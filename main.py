@@ -788,6 +788,7 @@ async def auto_save_tension_reading(
             "side": side,
             "kgf": kgf,
             "range_status": range_status,
+            "avg_deviation_status": avg_deviation_status,
             "stats_left": stats_left,
             "stats_right": stats_right,
             "quality_status": quality_status,

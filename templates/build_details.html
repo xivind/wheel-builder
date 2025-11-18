@@ -380,7 +380,7 @@
 
             <!-- Quality Status Banner -->
             {% if quality_status %}
-            <div class="mb-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" id="quality-status-panel">
+            <div class="mb-4 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" id="quality-status-panel">
                 <h6 class="mb-2">
                     <i class="bi {% if quality_status.status == 'well_balanced' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %}"></i>
                     Quality Status: <strong>{{ quality_status.status|replace('_', ' ')|title }}</strong>
@@ -417,7 +417,8 @@
                                         <th>Spoke</th>
                                         <th>TM-1</th>
                                         <th>kgf</th>
-                                        <th>Status</th>
+                                        <th>Tension Range</th>
+                                        <th>20% Deviation Range</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -445,11 +446,24 @@
                                             </span>
                                         </td>
                                         <td class="align-middle">
-                                            <span id="status-left-{{ i }}">
+                                            <span id="range-status-left-{{ i }}">
                                             {% if readings_left.get(i, {}).get('range_status') %}
-                                                <span class="badge bg-{% if readings_left[i].range_status == 'in_range' %}success{% elif readings_left[i].range_status == 'over' %}danger{% else %}warning{% endif %}">
+                                                <span class="badge bg-{% if readings_left[i].range_status == 'in_range' %}success{% else %}danger{% endif %}">
                                                     {{ readings_left[i].range_status|replace('_', ' ')|title }}
                                                 </span>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span id="avg-status-left-{{ i }}">
+                                            {% if readings_left.get(i, {}).get('avg_deviation_status') %}
+                                                <span class="badge bg-{% if readings_left[i].avg_deviation_status == 'in_range' %}success{% else %}danger{% endif %}">
+                                                    {{ readings_left[i].avg_deviation_status|replace('_', ' ')|title }}
+                                                </span>
+                                            {% else %}
+                                                -
                                             {% endif %}
                                             </span>
                                         </td>
@@ -486,7 +500,7 @@
 
                     <!-- Right Side -->
                     <div class="col-md-6">
-                        <h6 class="text-success mb-3"><i class="bi bi-arrow-right"></i> Right Side Spokes</h6>
+                        <h6 class="text-secondary mb-3"><i class="bi bi-arrow-right"></i> Right Side Spokes</h6>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered">
                                 <thead class="table-light">
@@ -494,7 +508,8 @@
                                         <th>Spoke</th>
                                         <th>TM-1</th>
                                         <th>kgf</th>
-                                        <th>Status</th>
+                                        <th>Tension Range</th>
+                                        <th>20% Deviation Range</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -522,11 +537,24 @@
                                             </span>
                                         </td>
                                         <td class="align-middle">
-                                            <span id="status-right-{{ i }}">
+                                            <span id="range-status-right-{{ i }}">
                                             {% if readings_right.get(i, {}).get('range_status') %}
-                                                <span class="badge bg-{% if readings_right[i].range_status == 'in_range' %}success{% elif readings_right[i].range_status == 'over' %}danger{% else %}warning{% endif %}">
+                                                <span class="badge bg-{% if readings_right[i].range_status == 'in_range' %}success{% else %}danger{% endif %}">
                                                     {{ readings_right[i].range_status|replace('_', ' ')|title }}
                                                 </span>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span id="avg-status-right-{{ i }}">
+                                            {% if readings_right.get(i, {}).get('avg_deviation_status') %}
+                                                <span class="badge bg-{% if readings_right[i].avg_deviation_status == 'in_range' %}success{% else %}danger{% endif %}">
+                                                    {{ readings_right[i].avg_deviation_status|replace('_', ' ')|title }}
+                                                </span>
+                                            {% else %}
+                                                -
                                             {% endif %}
                                             </span>
                                         </td>

@@ -99,7 +99,7 @@
 
                 <div class="mb-3">
                     <label for="comments" class="form-label">Comments</label>
-                    <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Optional notes about this build...">{{ build.comments if build else '' }}</textarea>
+                    <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Optional notes about this build...">{% if build and build.comments %}{{ build.comments }}{% endif %}</textarea>
                 </div>
 
                 <div class="alert alert-info">

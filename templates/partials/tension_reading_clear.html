@@ -4,7 +4,12 @@
     -
 </span>
 
-<span id="status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
+<span id="range-status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
+    -
+</span>
+
+<span id="avg-status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
+    -
 </span>
 
 {% if stats_left and stats_left.readings|length > 0 %}
@@ -56,7 +61,7 @@
 {% endif %}
 
 {% if quality_status %}
-<div class="mt-3 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" id="quality-status-panel" hx-swap-oob="true">
+<div class="mb-4 p-3 border rounded {% if quality_status.status == 'well_balanced' %}bg-success bg-opacity-10{% elif quality_status.status == 'needs_truing' %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" id="quality-status-panel" hx-swap-oob="true">
     <h6 class="mb-2">
         <i class="bi {% if quality_status.status == 'well_balanced' %}bi-check-circle{% else %}bi-exclamation-triangle{% endif %}"></i>
         Quality Status: <strong>{{ quality_status.status|replace('_', ' ')|title }}</strong>
