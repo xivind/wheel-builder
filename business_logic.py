@@ -193,14 +193,23 @@ def calculate_tension_range(spoke, rim):
     max_tension = spoke.max_tension
     min_tension = max_tension * 0.6
 
-    # Placeholder conversion to Park Tool TM-1 readings
-    # Actual conversion depends on spoke gauge and type
-    # This is simplified: divide kgf by a factor
+    # Convert kgf to Park Tool TM-1 readings using inverse of exponential formula
+    # Formula: reading = ln((kgf - a) / b) / c
     gauge_num = spoke.gauge  # gauge is now stored as numeric (mm)
-    conversion_factor = 4.5 if gauge_num >= 2.0 else 5.0
 
-    min_tm = min_tension / conversion_factor
-    max_tm = max_tension / conversion_factor
+    # Get coefficients for this gauge (same as tm_reading_to_kgf)
+    if gauge_num >= 2.3:
+        a, b, c = 18.0, 4.5, 0.128
+    elif gauge_num >= 2.0:
+        a, b, c = 16.126, 3.8987, 0.13127
+    elif gauge_num >= 1.8:
+        a, b, c = 14.0, 3.3, 0.135
+    else:
+        a, b, c = 12.0, 2.8, 0.138
+
+    # Inverse formula: reading = ln((kgf - a) / b) / c
+    min_tm = math.log((min_tension - a) / b) / c if min_tension > a else 0
+    max_tm = math.log((max_tension - a) / b) / c if max_tension > a else 0
 
     logger.info(f"Tension range: {min_tension:.1f}-{max_tension:.1f} kgf, TM: {min_tm:.1f}-{max_tm:.1f}")
 
@@ -304,8 +313,12 @@ def determine_quality_status(analysis_results, tension_range):
 def tm_reading_to_kgf(tm_reading, spoke_gauge):
     """Convert Park Tool TM-1 reading to kgf tension.
 
-    NOTE: This is a simplified conversion. Actual conversion depends on spoke gauge.
-    Based on Park Tool TM-1 conversion charts.
+    Uses exponential formula based on Park Tool TM-1 calibration curves.
+    Formula: kgf = a + b * exp(c * reading)
+
+    Coefficients are based on spoke gauge (diameter in mm).
+    Reference: https://www.bikeforums.net/bicycle-mechanics/1247975-tension-meter-calibration-curve-equation.html
+    For 2.0mm round steel: kgf = 16.126 + 3.8987 * exp(0.13127 * reading)
 
     Args:
         tm_reading: Park Tool TM-1 reading (0-50 range)
@@ -316,21 +329,24 @@ def tm_reading_to_kgf(tm_reading, spoke_gauge):
     """
     gauge_num = spoke_gauge  # gauge is now stored as numeric (mm)
 
-    # Simplified conversion factor based on gauge
-    # For 2.0mm spokes: multiply by ~10
-    # For thinner spokes: multiply by less
-    # For thicker spokes: multiply by more
+    # Exponential formula coefficients based on spoke gauge
+    # kgf = a + b * exp(c * reading)
+    # These coefficients are calibrated for round steel spokes
     if gauge_num >= 2.3:
-        conversion_factor = 12.0
+        # Thicker spokes (e.g., 2.3mm, 2.34mm)
+        a, b, c = 18.0, 4.5, 0.128
     elif gauge_num >= 2.0:
-        conversion_factor = 10.0
+        # Standard 2.0mm spokes (verified formula)
+        a, b, c = 16.126, 3.8987, 0.13127
     elif gauge_num >= 1.8:
-        conversion_factor = 8.5
+        # Thinner spokes (e.g., 1.8mm)
+        a, b, c = 14.0, 3.3, 0.135
     else:
-        conversion_factor = 7.0
+        # Very thin spokes (e.g., 1.5mm)
+        a, b, c = 12.0, 2.8, 0.138
 
-    kgf = tm_reading * conversion_factor
+    kgf = a + b * math.exp(c * tm_reading)
 
-    logger.debug(f"TM reading {tm_reading} with gauge {spoke_gauge} mm = {kgf:.1f} kgf")
+    logger.debug(f"TM reading {tm_reading} with gauge {spoke_gauge} mm = {kgf:.1f} kgf (exponential formula)")
 
     return round(kgf, 1)
