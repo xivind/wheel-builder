@@ -534,8 +534,8 @@ async def save_tension_readings(
             side = parts[2]  # 'left' or 'right'
             tm_reading = float(value)
 
-            # Convert to kgf
-            kgf = tm_reading_to_kgf(tm_reading, spoke_for_tension.gauge)
+            # Convert to kgf (using spoke material for accurate conversion)
+            kgf = tm_reading_to_kgf(tm_reading, spoke_for_tension.gauge, spoke_for_tension.material)
 
             # Determine range status
             if kgf < tension_range['min_kgf']:
@@ -702,9 +702,9 @@ async def auto_save_tension_reading(
         if not spoke_for_tension or not rim:
             return HTMLResponse("Build missing spoke or rim", status_code=400)
 
-        # Calculate tension range and kgf
+        # Calculate tension range and kgf (using spoke material for accurate conversion)
         tension_range = calculate_tension_range(spoke_for_tension, rim)
-        kgf = tm_reading_to_kgf(tm_reading_float, spoke_for_tension.gauge)
+        kgf = tm_reading_to_kgf(tm_reading_float, spoke_for_tension.gauge, spoke_for_tension.material)
 
         # Determine range status
         if kgf < tension_range['min_kgf']:
