@@ -104,7 +104,7 @@ class TensionReading(BaseModel):
     spoke_number = IntegerField()
     side = CharField()  # left or right
     tm_reading = FloatField()  # Park Tool TM-1 reading
-    estimated_tension_kgf = FloatField()
+    estimated_tension_kgf = FloatField(null=True)
     range_status = CharField()  # in_range, over, under
     average_deviation_status = CharField()  # in_range, over, under
 
