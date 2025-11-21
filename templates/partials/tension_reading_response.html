@@ -1,19 +1,37 @@
 <div id="oob-response"></div>
 
 <span id="kgf-{{side}}-{{spoke_num}}" hx-swap-oob="true">
+    {% if kgf is none %}
+    -
+    {% else %}
     {{ "%.1f"|format(kgf) }}
+    {% endif %}
 </span>
 
 <span id="range-status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
-    <span class="badge bg-{% if range_status == 'in_range' %}success{% else %}danger{% endif %}">
-        {{ range_status|replace('_', ' ')|title }}
-    </span>
+    {% if range_status == 'in_range' %}
+    <span class="badge bg-success">In Range</span>
+    {% elif range_status == 'over' %}
+    <span class="badge bg-danger">Over</span>
+    {% elif range_status == 'under' %}
+    <span class="badge bg-warning">Under</span>
+    {% elif range_status == 'below_table' %}
+    <span class="badge bg-danger">Below Range</span>
+    {% elif range_status == 'above_table' %}
+    <span class="badge bg-danger">Above Range</span>
+    {% endif %}
 </span>
 
 <span id="avg-status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
-    <span class="badge bg-{% if avg_deviation_status == 'in_range' %}success{% else %}danger{% endif %}">
-        {{ avg_deviation_status|replace('_', ' ')|title }}
-    </span>
+    {% if avg_deviation_status == 'unknown' %}
+    <span class="badge bg-secondary">Unknown</span>
+    {% elif avg_deviation_status == 'in_range' %}
+    <span class="badge bg-success">In Range</span>
+    {% elif avg_deviation_status == 'over' %}
+    <span class="badge bg-danger">Over</span>
+    {% elif avg_deviation_status == 'under' %}
+    <span class="badge bg-warning">Under</span>
+    {% endif %}
 </span>
 
 {% if stats_left and stats_left.readings|length > 0 %}
