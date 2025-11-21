@@ -19,7 +19,7 @@ from database_manager import (
     get_builds_using_spoke, get_builds_using_nipple,
     get_sessions_by_build, get_tension_session_by_id, create_tension_session,
     get_readings_by_session, bulk_create_or_update_readings, upsert_tension_reading,
-    delete_tension_reading
+    delete_tension_reading, get_all_spoke_types, get_spoke_type_by_id
 )
 from business_logic import (
     can_calculate_spoke_length, calculate_spoke_length,
@@ -938,6 +938,7 @@ async def spoke_form_partial(request: Request, id: str = None):
         spoke = None
         locked = False
         used_by_builds = []
+        spoke_types = get_all_spoke_types()  # Load all spoke types
 
         if id:
             spoke = get_spoke_by_id(id)
@@ -952,7 +953,8 @@ async def spoke_form_partial(request: Request, id: str = None):
             "request": request,
             "spoke": spoke,
             "locked": locked,
-            "used_by_builds": used_by_builds
+            "used_by_builds": used_by_builds,
+            "spoke_types": spoke_types  # Pass to template
         })
     except Exception as e:
         logger.error(f"Error loading spoke form: {e}")
@@ -1140,20 +1142,39 @@ async def update_rim_route(
 @app.post("/config/spoke/create")
 async def create_spoke_route(
     request: Request,
-    material: str = Form(...),
-    gauge: str = Form(...),
-    max_tension: float = Form(...),
+    spoke_type_id: str = Form(...),
     length: float = Form(...)
 ):
     """Create a new spoke."""
     try:
-        spoke = create_spoke(
-            material=material,
-            gauge=gauge,
-            max_tension=max_tension,
+        # Validate spoke type exists
+        spoke_type = get_spoke_type_by_id(spoke_type_id)
+        if not spoke_type:
+            logger.error(f"Invalid spoke_type_id: {spoke_type_id}")
+            return templates.TemplateResponse("partials/spoke_form.html", {
+                "request": request,
+                "error": "Invalid spoke type selected",
+                "spoke_types": get_all_spoke_types()
+            }, status_code=400)
+
+        # Validate length
+        if length <= 0:
+            return templates.TemplateResponse("partials/spoke_form.html", {
+                "request": request,
+                "error": "Length must be greater than 0",
+                "spoke_types": get_all_spoke_types()
+            }, status_code=400)
+
+        # Create spoke with spoke_type_id and length
+        from database_model import Spoke
+        import uuid
+        spoke = Spoke.create(
+            id=str(uuid.uuid4()),
+            spoke_type_id=spoke_type_id,
             length=length
         )
-        logger.info(f"Created spoke: {material} {gauge} (ID: {spoke.id})")
+
+        logger.info(f"Created spoke: {spoke.id} (type: {spoke_type.name}, length: {length}mm)")
         return RedirectResponse(url="/config", status_code=303)
     except Exception as e:
         logger.error(f"Error creating spoke: {e}")
@@ -1166,28 +1187,44 @@ async def create_spoke_route(
 async def update_spoke_route(
     spoke_id: str,
     request: Request,
-    material: str = Form(...),
-    gauge: str = Form(...),
-    max_tension: float = Form(...),
     length: float = Form(...)
 ):
-    """Update an existing spoke."""
+    """Update an existing spoke (only length can be changed)."""
     try:
+        spoke = get_spoke_by_id(spoke_id)
+        if not spoke:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error": "Spoke not found"
+            }, status_code=404)
+
         # Check if component is locked
         builds_using = get_builds_using_spoke(spoke_id)
         if builds_using:
             logger.warning(f"Cannot update spoke {spoke_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return templates.TemplateResponse("partials/spoke_form.html", {
+                "request": request,
+                "spoke": spoke,
+                "locked": True,
+                "used_by_builds": builds_using,
+                "spoke_types": get_all_spoke_types(),
+                "error": "Cannot edit spoke - it is being used in wheel builds"
+            }, status_code=403)
 
-        success = update_spoke(
-            spoke_id,
-            material=material,
-            gauge=gauge,
-            max_tension=max_tension,
-            length=length
-        )
-        if not success:
-            logger.warning(f"Failed to update spoke {spoke_id}")
+        # Validate length
+        if length <= 0:
+            return templates.TemplateResponse("partials/spoke_form.html", {
+                "request": request,
+                "spoke": spoke,
+                "spoke_types": get_all_spoke_types(),
+                "error": "Length must be greater than 0"
+            }, status_code=400)
+
+        # Update only length (spoke_type_id cannot be changed)
+        spoke.length = length
+        spoke.save()
+
+        logger.info(f"Updated spoke {spoke_id}: length={length}mm")
         return RedirectResponse(url="/config", status_code=303)
     except Exception as e:
         logger.error(f"Error updating spoke: {e}")

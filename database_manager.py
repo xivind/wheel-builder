@@ -189,6 +189,15 @@ def get_spoke_type_by_id(spoke_type_id):
     except SpokeType.DoesNotExist:
         return None
 
+def get_all_spoke_types():
+    """Get all spoke types for selection.
+
+    Returns:
+        list: All SpokeType instances, ordered by name
+    """
+    from database_model import SpokeType
+    return list(SpokeType.select().order_by(SpokeType.name))
+
 # Nipple operations
 
 def create_nipple(material, diameter, length, color):
