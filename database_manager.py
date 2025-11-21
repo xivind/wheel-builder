@@ -140,14 +140,41 @@ def create_spoke(material, gauge, max_tension, length):
     return spoke
 
 def get_all_spokes():
-    """Get all spokes from database."""
-    return list(Spoke.select())
+    """Get all spokes with their spoke types.
+
+    Returns:
+        list: All Spoke instances with spoke_type loaded
+    """
+    from database_model import SpokeType
+
+    spokes = list(Spoke.select())
+
+    # Eager load spoke types
+    for spoke in spokes:
+        try:
+            spoke.spoke_type = SpokeType.get_by_id(spoke.spoke_type_id)
+        except SpokeType.DoesNotExist:
+            spoke.spoke_type = None
+            logger.warning(f"Spoke {spoke.id} has invalid spoke_type_id")
+
+    return spokes
 
 def get_spoke_by_id(spoke_id):
-    """Get a specific spoke by ID."""
+    """Get spoke by ID with spoke type.
+
+    Args:
+        spoke_id: Spoke UUID
+
+    Returns:
+        Spoke instance or None
+    """
+    from database_model import SpokeType
     try:
-        return Spoke.get_by_id(spoke_id)
-    except Spoke.DoesNotExist:
+        spoke = Spoke.get_by_id(spoke_id)
+        # Eager load spoke type
+        spoke.spoke_type = SpokeType.get_by_id(spoke.spoke_type_id)
+        return spoke
+    except (Spoke.DoesNotExist, SpokeType.DoesNotExist):
         return None
 
 def update_spoke(spoke_id, **kwargs):
