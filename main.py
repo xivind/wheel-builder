@@ -817,7 +817,7 @@ async def auto_save_tension_reading(
             "request": request,
             "spoke_num": spoke_num,
             "side": side,
-            "kgf": kgf,
+            "kgf": estimated_tension_kgf,
             "range_status": range_status,
             "avg_deviation_status": avg_deviation_status,
             "stats_left": stats_left,
