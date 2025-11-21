@@ -174,6 +174,21 @@ def get_builds_using_spoke(spoke_id):
         (WheelBuild.spoke_left_id == spoke_id) | (WheelBuild.spoke_right_id == spoke_id)
     ))
 
+def get_spoke_type_by_id(spoke_type_id):
+    """Get spoke type by ID.
+
+    Args:
+        spoke_type_id: SpokeType UUID
+
+    Returns:
+        SpokeType instance or None
+    """
+    from database_model import SpokeType
+    try:
+        return SpokeType.get_by_id(spoke_type_id)
+    except SpokeType.DoesNotExist:
+        return None
+
 # Nipple operations
 
 def create_nipple(material, diameter, length, color):

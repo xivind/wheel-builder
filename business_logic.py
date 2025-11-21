@@ -310,43 +310,84 @@ def determine_quality_status(analysis_results, tension_range):
         'issues': issues
     }
 
-def tm_reading_to_kgf(tm_reading, spoke_gauge):
-    """Convert Park Tool TM-1 reading to kgf tension.
+def tm_reading_to_kgf(tm_reading, spoke_type_id):
+    """Convert Park Tool TM-1 reading to kgf tension using table lookup.
 
-    Uses exponential formula based on Park Tool TM-1 calibration curves.
-    Formula: kgf = a + b * exp(c * reading)
-
-    Coefficients are based on spoke gauge (diameter in mm).
-    Reference: https://www.bikeforums.net/bicycle-mechanics/1247975-tension-meter-calibration-curve-equation.html
-    For 2.0mm round steel: kgf = 16.126 + 3.8987 * exp(0.13127 * reading)
+    Uses ConversionPoint table for accurate conversion based on spoke type.
+    Linear interpolation for readings between table values.
+    No extrapolation - returns None for out-of-range readings.
 
     Args:
         tm_reading: Park Tool TM-1 reading (0-50 range)
-        spoke_gauge: Spoke gauge in mm (e.g., 2.0, 1.8)
+        spoke_type_id: UUID of SpokeType
 
     Returns:
-        float: Estimated tension in kgf
+        dict: {
+            'kgf': float or None,
+            'status': 'exact' | 'interpolated' | 'below_table' | 'above_table'
+        }
     """
-    gauge_num = spoke_gauge  # gauge is now stored as numeric (mm)
+    from database_model import ConversionPoint, SpokeType
+    from database_manager import get_spoke_type_by_id
 
-    # Exponential formula coefficients based on spoke gauge
-    # kgf = a + b * exp(c * reading)
-    # These coefficients are calibrated for round steel spokes
-    if gauge_num >= 2.3:
-        # Thicker spokes (e.g., 2.3mm, 2.34mm)
-        a, b, c = 18.0, 4.5, 0.128
-    elif gauge_num >= 2.0:
-        # Standard 2.0mm spokes (verified formula)
-        a, b, c = 16.126, 3.8987, 0.13127
-    elif gauge_num >= 1.8:
-        # Thinner spokes (e.g., 1.8mm)
-        a, b, c = 14.0, 3.3, 0.135
-    else:
-        # Very thin spokes (e.g., 1.5mm)
-        a, b, c = 12.0, 2.8, 0.138
+    # Get spoke type for range info
+    spoke_type = get_spoke_type_by_id(spoke_type_id)
+    if not spoke_type:
+        logger.error(f"SpokeType {spoke_type_id} not found")
+        return {'kgf': None, 'status': 'below_table'}
 
-    kgf = a + b * math.exp(c * tm_reading)
+    # Check if reading is out of range
+    if tm_reading < spoke_type.min_tm_reading:
+        logger.warning(
+            f"TM reading {tm_reading} below table range for {spoke_type.name} "
+            f"(min: {spoke_type.min_tm_reading})"
+        )
+        return {'kgf': None, 'status': 'below_table'}
 
-    logger.debug(f"TM reading {tm_reading} with gauge {spoke_gauge} mm = {kgf:.1f} kgf (exponential formula)")
+    if tm_reading > spoke_type.max_tm_reading:
+        logger.warning(
+            f"TM reading {tm_reading} above table range for {spoke_type.name} "
+            f"(max: {spoke_type.max_tm_reading})"
+        )
+        return {'kgf': None, 'status': 'above_table'}
 
-    return round(kgf, 1)
+    # Fetch conversion points for this spoke type, ordered by tm_reading
+    conversion_points = list(
+        ConversionPoint
+        .select()
+        .where(ConversionPoint.spoke_type_id == spoke_type_id)
+        .order_by(ConversionPoint.tm_reading)
+    )
+
+    if not conversion_points:
+        logger.error(f"No conversion points found for spoke type {spoke_type_id}")
+        return {'kgf': None, 'status': 'below_table'}
+
+    # Check for exact match
+    for point in conversion_points:
+        if point.tm_reading == tm_reading:
+            logger.debug(f"Exact match: TM {tm_reading} = {point.kgf} kgf")
+            return {'kgf': float(point.kgf), 'status': 'exact'}
+
+    # Find adjacent points for interpolation
+    for i in range(len(conversion_points) - 1):
+        tm_low = conversion_points[i].tm_reading
+        tm_high = conversion_points[i + 1].tm_reading
+
+        if tm_low <= tm_reading <= tm_high:
+            kgf_low = conversion_points[i].kgf
+            kgf_high = conversion_points[i + 1].kgf
+
+            # Linear interpolation
+            ratio = (tm_reading - tm_low) / (tm_high - tm_low)
+            kgf = kgf_low + ratio * (kgf_high - kgf_low)
+
+            logger.debug(
+                f"Interpolated: TM {tm_reading} between {tm_low}->{kgf_low} and "
+                f"{tm_high}->{kgf_high} = {kgf:.1f} kgf"
+            )
+            return {'kgf': round(kgf, 1), 'status': 'interpolated'}
+
+    # Should never reach here if range checks worked
+    logger.error(f"Failed to interpolate TM reading {tm_reading}")
+    return {'kgf': None, 'status': 'below_table'}
