@@ -1014,7 +1014,7 @@ async def create_hub_route(
             spoke_hole_diameter=spoke_hole_diameter
         )
         logger.info(f"Created hub: {make} {model} (ID: {hub.id})")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#hubs", status_code=303)
     except Exception as e:
         logger.error(f"Error creating hub: {e}")
         return templates.TemplateResponse("error.html", {
@@ -1042,7 +1042,7 @@ async def update_hub_route(
         builds_using = get_builds_using_hub(hub_id)
         if builds_using:
             logger.warning(f"Cannot update hub {hub_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#hubs", status_code=303)
 
         success = update_hub(
             hub_id,
@@ -1058,10 +1058,10 @@ async def update_hub_route(
         )
         if not success:
             logger.warning(f"Failed to update hub {hub_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#hubs", status_code=303)
     except Exception as e:
         logger.error(f"Error updating hub: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#hubs", status_code=303)
 
 @app.post("/config/rim/create")
 async def create_rim_route(
@@ -1090,7 +1090,7 @@ async def create_rim_route(
             material=material
         )
         logger.info(f"Created rim: {make} {model} (ID: {rim.id})")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#rims", status_code=303)
     except Exception as e:
         logger.error(f"Error creating rim: {e}")
         return templates.TemplateResponse("error.html", {
@@ -1118,7 +1118,7 @@ async def update_rim_route(
         builds_using = get_builds_using_rim(rim_id)
         if builds_using:
             logger.warning(f"Cannot update rim {rim_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#rims", status_code=303)
 
         success = update_rim(
             rim_id,
@@ -1134,10 +1134,10 @@ async def update_rim_route(
         )
         if not success:
             logger.warning(f"Failed to update rim {rim_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#rims", status_code=303)
     except Exception as e:
         logger.error(f"Error updating rim: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#rims", status_code=303)
 
 @app.post("/config/spoke/create")
 async def create_spoke_route(
@@ -1175,7 +1175,7 @@ async def create_spoke_route(
         )
 
         logger.info(f"Created spoke: {spoke.id} (type: {spoke_type.name}, length: {length}mm)")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#spokes", status_code=303)
     except Exception as e:
         logger.error(f"Error creating spoke: {e}")
         return templates.TemplateResponse("error.html", {
@@ -1225,10 +1225,10 @@ async def update_spoke_route(
         spoke.save()
 
         logger.info(f"Updated spoke {spoke_id}: length={length}mm")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#spokes", status_code=303)
     except Exception as e:
         logger.error(f"Error updating spoke: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#spokes", status_code=303)
 
 @app.post("/config/nipple/create")
 async def create_nipple_route(
@@ -1247,7 +1247,7 @@ async def create_nipple_route(
             color=color
         )
         logger.info(f"Created nipple: {material} {diameter}mm (ID: {nipple.id})")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#nipples", status_code=303)
     except Exception as e:
         logger.error(f"Error creating nipple: {e}")
         return templates.TemplateResponse("error.html", {
@@ -1270,7 +1270,7 @@ async def update_nipple_route(
         builds_using = get_builds_using_nipple(nipple_id)
         if builds_using:
             logger.warning(f"Cannot update nipple {nipple_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#nipples", status_code=303)
 
         success = update_nipple(
             nipple_id,
@@ -1281,10 +1281,10 @@ async def update_nipple_route(
         )
         if not success:
             logger.warning(f"Failed to update nipple {nipple_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#nipples", status_code=303)
     except Exception as e:
         logger.error(f"Error updating nipple: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#nipples", status_code=303)
 
 @app.post("/config/hub/{hub_id}/delete")
 async def delete_hub_route(hub_id: str):
@@ -1294,14 +1294,14 @@ async def delete_hub_route(hub_id: str):
         builds_using = get_builds_using_hub(hub_id)
         if builds_using:
             logger.warning(f"Cannot delete hub {hub_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#hubs", status_code=303)
 
         delete_hub(hub_id)
         logger.info(f"Deleted hub: {hub_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#hubs", status_code=303)
     except Exception as e:
         logger.error(f"Error deleting hub: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#hubs", status_code=303)
 
 @app.post("/config/rim/{rim_id}/delete")
 async def delete_rim_route(rim_id: str):
@@ -1311,14 +1311,14 @@ async def delete_rim_route(rim_id: str):
         builds_using = get_builds_using_rim(rim_id)
         if builds_using:
             logger.warning(f"Cannot delete rim {rim_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#rims", status_code=303)
 
         delete_rim(rim_id)
         logger.info(f"Deleted rim: {rim_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#rims", status_code=303)
     except Exception as e:
         logger.error(f"Error deleting rim: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#rims", status_code=303)
 
 @app.post("/config/spoke/{spoke_id}/delete")
 async def delete_spoke_route(spoke_id: str):
@@ -1328,14 +1328,14 @@ async def delete_spoke_route(spoke_id: str):
         builds_using = get_builds_using_spoke(spoke_id)
         if builds_using:
             logger.warning(f"Cannot delete spoke {spoke_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#spokes", status_code=303)
 
         delete_spoke(spoke_id)
         logger.info(f"Deleted spoke: {spoke_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#spokes", status_code=303)
     except Exception as e:
         logger.error(f"Error deleting spoke: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#spokes", status_code=303)
 
 @app.post("/config/nipple/{nipple_id}/delete")
 async def delete_nipple_route(nipple_id: str):
@@ -1345,14 +1345,14 @@ async def delete_nipple_route(nipple_id: str):
         builds_using = get_builds_using_nipple(nipple_id)
         if builds_using:
             logger.warning(f"Cannot delete nipple {nipple_id}: used by {len(builds_using)} build(s)")
-            return RedirectResponse(url="/config", status_code=303)
+            return RedirectResponse(url="/config#nipples", status_code=303)
 
         delete_nipple(nipple_id)
         logger.info(f"Deleted nipple: {nipple_id}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#nipples", status_code=303)
     except Exception as e:
         logger.error(f"Error deleting nipple: {e}")
-        return RedirectResponse(url="/config", status_code=303)
+        return RedirectResponse(url="/config#nipples", status_code=303)
 
 @app.get("/health")
 async def health_check():
