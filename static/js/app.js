@@ -18,7 +18,11 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
     // Prepare datasets
     const datasets = [];
 
-    if (leftReadings && leftReadings.length > 0) {
+    // Get label count for array sizing
+    const labelCount = (leftLabels || rightLabels || []).length;
+
+    // Always add left side dataset (will show as empty if all null)
+    if (leftReadings) {
         datasets.push({
             label: 'Left Side',
             data: leftReadings,
@@ -32,7 +36,8 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
         });
     }
 
-    if (rightReadings && rightReadings.length > 0) {
+    // Always add right side dataset (will show as empty if all null)
+    if (rightReadings) {
         datasets.push({
             label: 'Right Side',
             data: rightReadings,
@@ -46,9 +51,9 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
         });
     }
 
-    // Add recommended range as reference
-    if (recommendedMax) {
-        const maxData = new Array(leftReadings?.length || rightReadings?.length || 0).fill(recommendedMax);
+    // Always add recommended max reference line if available
+    if (recommendedMax && labelCount > 0) {
+        const maxData = new Array(labelCount).fill(recommendedMax);
         datasets.push({
             label: 'Max Recommended',
             data: maxData,
