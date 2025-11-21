@@ -638,7 +638,7 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if selected_session and (readings_left or readings_right) %}
+{% if selected_session %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const leftReadings = [
