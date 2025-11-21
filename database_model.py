@@ -115,4 +115,10 @@ def initialize_database():
         Hub, Rim, SpokeType, ConversionPoint, Spoke, Nipple,
         WheelBuild, TensionSession, TensionReading
     ], safe=True)
+
+    # Seed spoke types if table is empty
+    if SpokeType.select().count() == 0:
+        from seed_spoke_types import seed_spoke_types
+        seed_spoke_types()
+
     db.close()
