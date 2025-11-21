@@ -239,7 +239,26 @@ def analyze_tension_readings(readings, tension_range):
         if not side_readings:
             continue
 
-        tensions = [r.estimated_tension_kgf for r in side_readings]
+        # Filter out NULL readings (out-of-table conversions)
+        valid_readings = [
+            r for r in side_readings
+            if r.estimated_tension_kgf is not None
+        ]
+
+        if not valid_readings:
+            # All readings are out of range
+            results[side] = {
+                'readings': side_readings,
+                'average': 0,
+                'std_dev': 0,
+                'min': 0,
+                'max': 0,
+                'upper_limit_20pct': 0,
+                'lower_limit_20pct': 0
+            }
+            continue
+
+        tensions = [r.estimated_tension_kgf for r in valid_readings]
 
         avg = statistics.mean(tensions)
         std_dev = statistics.stdev(tensions) if len(tensions) > 1 else 0
@@ -251,7 +270,7 @@ def analyze_tension_readings(readings, tension_range):
         lower_limit = avg * 0.8
 
         results[side] = {
-            'readings': side_readings,
+            'readings': side_readings,  # Include all readings for display
             'average': round(avg, 2),
             'std_dev': round(std_dev, 2),
             'min': round(min_tension, 2),
