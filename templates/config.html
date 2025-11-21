@@ -360,4 +360,19 @@
     vertical-align: middle;
 }
 </style>
+
+<script>
+// Activate the correct tab based on URL hash on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const hash = window.location.hash;
+    if (hash) {
+        const tabId = hash.substring(1); // Remove the '#'
+        const tabButton = document.getElementById(tabId + '-tab');
+        if (tabButton) {
+            const tab = new bootstrap.Tab(tabButton);
+            tab.show();
+        }
+    }
+});
+</script>
 {% endblock %}
