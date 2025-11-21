@@ -595,7 +595,6 @@
                 </div>
 
                 <!-- Tension Distribution Chart -->
-                {% if readings_left or readings_right %}
                 <div class="row mt-4">
                     <div class="col-12">
                         <h6><i class="bi bi-diagram-3"></i> Tension Distribution</h6>
@@ -604,7 +603,6 @@
                         </div>
                     </div>
                 </div>
-                {% endif %}
             </div>
             {% endif %}
             {% else %}
@@ -673,9 +671,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const recommendedMax = {{ tension_range.max_kgf if tension_range else 'null' }};
 
-    if (leftReadings.length > 0 || rightReadings.length > 0) {
-        initTensionChart(leftReadings, rightReadings, labels, labels, null, recommendedMax);
-    }
+    // Always initialize chart, even with no readings (will show max kgf line)
+    initTensionChart(leftReadings, rightReadings, labels, labels, null, recommendedMax);
 
     // Listen for HTMX swap events to update chart
     document.body.addEventListener('htmx:afterSwap', function(event) {
@@ -715,10 +712,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Redraw chart with updated data
-            if (leftVals.length > 0 || rightVals.length > 0) {
-                initTensionChart(leftVals, rightVals, spokeLabels, spokeLabels, null, maxTension);
-            }
+            // Redraw chart with updated data (always update, even with no readings)
+            initTensionChart(leftVals, rightVals, spokeLabels, spokeLabels, null, maxTension);
         } catch (e) {
             console.error('Error updating chart:', e);
         }
