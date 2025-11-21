@@ -534,39 +534,58 @@ async def save_tension_readings(
             side = parts[2]  # 'left' or 'right'
             tm_reading = float(value)
 
-            # Convert to kgf
-            kgf = tm_reading_to_kgf(tm_reading, spoke_for_tension.gauge)
+            # Convert to kgf - now returns dict with 'kgf' and 'status' keys
+            conversion_result = tm_reading_to_kgf(tm_reading, spoke_for_tension.spoke_type_id)
 
-            # Determine range status
-            if kgf < tension_range['min_kgf']:
-                range_status = 'under'
-            elif kgf > tension_range['max_kgf']:
-                range_status = 'over'
+            # Handle conversion status
+            if conversion_result['status'] in ['below_table', 'above_table']:
+                # Out of range - save NULL for kgf
+                estimated_tension_kgf = None
+                range_status = conversion_result['status']
+                average_deviation_status = 'unknown'
             else:
-                range_status = 'in_range'
+                # Valid conversion
+                estimated_tension_kgf = conversion_result['kgf']
+
+                # Calculate range status
+                if estimated_tension_kgf < tension_range['min_kgf']:
+                    range_status = 'under'
+                elif estimated_tension_kgf > tension_range['max_kgf']:
+                    range_status = 'over'
+                else:
+                    range_status = 'in_range'
+
+                # average_deviation_status will be updated in second pass
+                average_deviation_status = 'in_range'
 
             reading_info = {
                 'spoke_number': spoke_number,
                 'side': side,
                 'tm_reading': tm_reading,
-                'estimated_tension_kgf': kgf,
+                'estimated_tension_kgf': estimated_tension_kgf,
                 'range_status': range_status,
-                'average_deviation_status': 'in_range'  # Temporary, will update in second pass
+                'average_deviation_status': average_deviation_status
             }
 
             readings_data.append(reading_info)
             all_readings_for_stats.append(reading_info)
 
         # Second pass: calculate average deviation status
-        # Separate by side
-        left_tensions = [r['estimated_tension_kgf'] for r in readings_data if r['side'] == 'left']
-        right_tensions = [r['estimated_tension_kgf'] for r in readings_data if r['side'] == 'right']
+        # Separate by side, filtering out NULL values (out-of-range readings)
+        left_tensions = [r['estimated_tension_kgf'] for r in readings_data
+                        if r['side'] == 'left' and r['estimated_tension_kgf'] is not None]
+        right_tensions = [r['estimated_tension_kgf'] for r in readings_data
+                         if r['side'] == 'right' and r['estimated_tension_kgf'] is not None]
 
         left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
         right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
 
-        # Update average deviation status
+        # Update average deviation status (only for valid readings)
         for reading in readings_data:
+            # Skip readings that are already marked as 'unknown' (out of range)
+            if reading['average_deviation_status'] == 'unknown':
+                continue
+
             avg = left_avg if reading['side'] == 'left' else right_avg
 
             if avg > 0:
@@ -702,51 +721,63 @@ async def auto_save_tension_reading(
         if not spoke_for_tension or not rim:
             return HTMLResponse("Build missing spoke or rim", status_code=400)
 
-        # Calculate tension range and kgf
+        # Calculate tension range and convert TM reading to kgf
         tension_range = calculate_tension_range(spoke_for_tension, rim)
-        kgf = tm_reading_to_kgf(tm_reading_float, spoke_for_tension.gauge)
+        conversion_result = tm_reading_to_kgf(tm_reading_float, spoke_for_tension.spoke_type_id)
 
-        # Determine range status
-        if kgf < tension_range['min_kgf']:
-            range_status = 'under'
-        elif kgf > tension_range['max_kgf']:
-            range_status = 'over'
+        # Handle conversion status
+        if conversion_result['status'] in ['below_table', 'above_table']:
+            # Out of range - save NULL for kgf
+            estimated_tension_kgf = None
+            range_status = conversion_result['status']
+            avg_deviation_status = 'unknown'
         else:
-            range_status = 'in_range'
+            # Valid conversion
+            estimated_tension_kgf = conversion_result['kgf']
 
-        # Get all readings to calculate average deviation
-        all_readings = get_readings_by_session(session_id)
+            # Calculate range status
+            if estimated_tension_kgf < tension_range['min_kgf']:
+                range_status = 'under'
+            elif estimated_tension_kgf > tension_range['max_kgf']:
+                range_status = 'over'
+            else:
+                range_status = 'in_range'
 
-        # Build temporary list including this new reading for average calculation
-        temp_readings = []
-        for r in all_readings:
-            if r.spoke_number == spoke_num and r.side == side:
-                # Skip - we'll add the updated one
-                continue
-            temp_readings.append({'side': r.side, 'kgf': r.estimated_tension_kgf})
+            # Get all readings to calculate average deviation
+            all_readings = get_readings_by_session(session_id)
 
-        # Add the new/updated reading
-        temp_readings.append({'side': side, 'kgf': kgf})
+            # Build temporary list including this new reading for average calculation
+            # Filter out NULL values (out-of-range readings)
+            temp_readings = []
+            for r in all_readings:
+                if r.spoke_number == spoke_num and r.side == side:
+                    # Skip - we'll add the updated one
+                    continue
+                if r.estimated_tension_kgf is not None:
+                    temp_readings.append({'side': r.side, 'kgf': r.estimated_tension_kgf})
 
-        # Calculate averages
-        left_tensions = [r['kgf'] for r in temp_readings if r['side'] == 'left']
-        right_tensions = [r['kgf'] for r in temp_readings if r['side'] == 'right']
-        left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
-        right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
+            # Add the new/updated reading (it's valid since we're in this branch)
+            temp_readings.append({'side': side, 'kgf': estimated_tension_kgf})
 
-        # Determine average deviation status
-        avg = left_avg if side == 'left' else right_avg
-        if avg > 0:
-            upper_limit = avg * 1.2
-            lower_limit = avg * 0.8
-            if kgf < lower_limit:
-                avg_deviation_status = 'under'
-            elif kgf > upper_limit:
-                avg_deviation_status = 'over'
+            # Calculate averages
+            left_tensions = [r['kgf'] for r in temp_readings if r['side'] == 'left']
+            right_tensions = [r['kgf'] for r in temp_readings if r['side'] == 'right']
+            left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
+            right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
+
+            # Determine average deviation status
+            avg = left_avg if side == 'left' else right_avg
+            if avg > 0:
+                upper_limit = avg * 1.2
+                lower_limit = avg * 0.8
+                if estimated_tension_kgf < lower_limit:
+                    avg_deviation_status = 'under'
+                elif estimated_tension_kgf > upper_limit:
+                    avg_deviation_status = 'over'
+                else:
+                    avg_deviation_status = 'in_range'
             else:
                 avg_deviation_status = 'in_range'
-        else:
-            avg_deviation_status = 'in_range'
 
         # WRITE TO DATABASE
         upsert_tension_reading(
@@ -754,7 +785,7 @@ async def auto_save_tension_reading(
             spoke_number=spoke_num,
             side=side,
             tm_reading=tm_reading_float,
-            estimated_tension_kgf=kgf,
+            estimated_tension_kgf=estimated_tension_kgf,
             range_status=range_status,
             average_deviation_status=avg_deviation_status
         )
