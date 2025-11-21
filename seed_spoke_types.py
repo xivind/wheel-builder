@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 from database_model import db, SpokeType, ConversionPoint
 from logger import logger
@@ -38,18 +39,14 @@ def parse_spoke_type_metadata(name):
     else:
         shape = "Unknown"
 
-    # Extract dimensions (everything after material and shape)
-    # Examples: "2.0mm", "1.4 x 2.6mm", "0.8 x 2.0mm"
-    parts = name.split()
-    dimensions = " ".join(parts[-1:])  # Last part usually contains dimensions
-    if not dimensions or len(dimensions) > 20:
-        # Try to find pattern like "2.0mm" or "1.4 x 2.6mm"
-        import re
-        match = re.search(r'(\d+\.?\d*\s*x?\s*\d*\.?\d*mm)', name)
-        if match:
-            dimensions = match.group(1)
-        else:
-            dimensions = name  # Fallback to full name
+    # Extract dimensions using regex first (more reliable)
+    match = re.search(r'(\d+\.?\d*\s*x?\s*\d*\.?\d*mm|\d+\.?\d*mm)', name)
+    if match:
+        dimensions = match.group(1)
+    else:
+        # Fallback: use last part if it looks like a dimension
+        parts = name.split()
+        dimensions = " ".join(parts[-1:]) if parts else name
 
     return {
         'material': material,
