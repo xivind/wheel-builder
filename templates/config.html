@@ -214,10 +214,9 @@
                         <table class="table table-hover">
                             <thead style="background-color: #f8f9fa;">
                                 <tr>
-                                    <th>Material</th>
-                                    <th>Gauge</th>
-                                    <th>Max Tension (kgf)</th>
-                                    <th>Length (mm)</th>
+                                    <th>Spoke Type</th>
+                                    <th>Properties</th>
+                                    <th>Tension Range (kgf)</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -228,18 +227,20 @@
                                         {% if spoke.locked %}
                                             <i class="bi bi-lock-fill text-warning" title="Used by {{ spoke.used_by_builds|length }} build(s)"></i>
                                         {% endif %}
-                                        {{ spoke.material|title }}
+                                        {{ spoke.spoke_type.name }} @ {{ spoke.length }}mm
                                     </td>
-                                    <td>{{ spoke.gauge }}mm</td>
-                                    <td>{{ spoke.max_tension }}</td>
-                                    <td>{{ spoke.length }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ spoke.spoke_type.material }}</span>
+                                        <span class="badge bg-info">{{ spoke.spoke_type.dimensions }}</span>
+                                    </td>
+                                    <td>{{ spoke.spoke_type.min_tension_kgf }} - {{ spoke.spoke_type.max_tension_kgf }} kgf</td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary me-1"
                                                 hx-get="/partials/spoke-form?id={{ spoke.id }}"
                                                 hx-target="#component-modal-container"
                                                 hx-swap="innerHTML"
-                                                
-                                                
+
+
                                                 {% if spoke.locked %}disabled title="Cannot edit - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
