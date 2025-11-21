@@ -1195,7 +1195,7 @@ async def update_spoke_route(
         if not spoke:
             return templates.TemplateResponse("error.html", {
                 "request": request,
-                "error": "Spoke not found"
+                "error_message": "Spoke not found"
             }, status_code=404)
 
         # Check if component is locked
