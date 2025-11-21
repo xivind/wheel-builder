@@ -90,7 +90,7 @@ The following tests require browser interaction and should be performed manually
 1. In an active tension session
 2. Enter TM reading: 24 (within range 17-28)
 3. Submit reading
-4. Verify estimated tension is calculated and displayed (approximately 120 kgf)
+4. Verify estimated tension is calculated and displayed (107 kgf)
 5. Verify range status badge shows "IN RANGE" (green)
 6. Verify deviation status calculated correctly
 
@@ -121,12 +121,13 @@ The following tests require browser interaction and should be performed manually
 ### 7. Average Calculation with NULL Values
 **Steps:**
 1. Create a session with multiple readings:
-   - TM 20 → ~120 kgf (valid)
+   - TM 20 → 70 kgf (valid)
    - TM 10 → NULL (below range)
-   - TM 22 → ~125 kgf (valid)
-   - TM 21 → ~118 kgf (valid)
+   - TM 22 → 86 kgf (valid)
+   - TM 21 → 77 kgf (valid)
 2. Verify session summary shows:
-   - Average calculated from valid readings only: ~121 kgf
+   - Average calculated from valid readings only: 77.7 kgf
+   - Min: 70.0 kgf, Max: 86.0 kgf, Std Dev: 8.0
    - NULL readings excluded from average
    - Valid readings show ±20% deviation status
    - NULL readings show "UNKNOWN" deviation status
