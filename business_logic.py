@@ -174,7 +174,7 @@ def calculate_recommended_spoke_lengths(wheel_build):
 def calculate_tension_range(spoke, rim):
     """Calculate recommended min/max tension for a spoke/rim combination.
 
-    NOTE: This is a placeholder. User will provide actual formulas.
+    Uses spoke type's calibration data directly from Park Tool conversion table.
 
     Args:
         spoke: Spoke model instance
@@ -184,40 +184,36 @@ def calculate_tension_range(spoke, rim):
         dict: {
             'min_kgf': float,
             'max_kgf': float,
-            'min_tm_reading': float,
-            'max_tm_reading': float
+            'min_tm_reading': int,
+            'max_tm_reading': int
         }
     """
-    # Use spoke max_tension as the upper limit
-    # Set min as 60% of max (common rule of thumb)
-    max_tension = spoke.max_tension
-    min_tension = max_tension * 0.6
+    from database_manager import get_spoke_type_by_id
 
-    # Convert kgf to Park Tool TM-1 readings using inverse of exponential formula
-    # Formula: reading = ln((kgf - a) / b) / c
-    gauge_num = spoke.gauge  # gauge is now stored as numeric (mm)
+    # Get spoke type
+    spoke_type = get_spoke_type_by_id(spoke.spoke_type_id)
 
-    # Get coefficients for this gauge (same as tm_reading_to_kgf)
-    if gauge_num >= 2.3:
-        a, b, c = 18.0, 4.5, 0.128
-    elif gauge_num >= 2.0:
-        a, b, c = 16.126, 3.8987, 0.13127
-    elif gauge_num >= 1.8:
-        a, b, c = 14.0, 3.3, 0.135
-    else:
-        a, b, c = 12.0, 2.8, 0.138
+    if not spoke_type:
+        logger.error(f"SpokeType {spoke.spoke_type_id} not found for spoke {spoke.id}")
+        # Return safe defaults if spoke type not found
+        return {
+            'min_kgf': 50.0,
+            'max_kgf': 120.0,
+            'min_tm_reading': 15,
+            'max_tm_reading': 25
+        }
 
-    # Inverse formula: reading = ln((kgf - a) / b) / c
-    min_tm = math.log((min_tension - a) / b) / c if min_tension > a else 0
-    max_tm = math.log((max_tension - a) / b) / c if max_tension > a else 0
-
-    logger.info(f"Tension range: {min_tension:.1f}-{max_tension:.1f} kgf, TM: {min_tm:.1f}-{max_tm:.1f}")
+    logger.info(
+        f"Tension range for {spoke_type.name}: "
+        f"{spoke_type.min_tension_kgf}-{spoke_type.max_tension_kgf} kgf, "
+        f"TM: {spoke_type.min_tm_reading}-{spoke_type.max_tm_reading}"
+    )
 
     return {
-        'min_kgf': round(min_tension, 1),
-        'max_kgf': round(max_tension, 1),
-        'min_tm_reading': round(min_tm, 1),
-        'max_tm_reading': round(max_tm, 1)
+        'min_kgf': spoke_type.min_tension_kgf,
+        'max_kgf': spoke_type.max_tension_kgf,
+        'min_tm_reading': spoke_type.min_tm_reading,
+        'max_tm_reading': spoke_type.max_tm_reading
     }
 
 def analyze_tension_readings(readings, tension_range):
