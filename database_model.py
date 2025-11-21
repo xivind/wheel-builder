@@ -36,11 +36,32 @@ class Rim(BaseModel):
     holes = IntegerField()
     material = CharField()
 
+class SpokeType(BaseModel):
+    id = CharField(primary_key=True)
+    name = CharField()  # e.g., "Steel Round 2.0mm"
+    material = CharField()  # Steel, Aluminum, Titanium, Carbon
+    shape = CharField()  # Round or Blade
+    dimensions = CharField()  # "2.0mm" or "1.4 x 2.6mm"
+    min_tm_reading = IntegerField()  # Lowest TM reading in conversion table
+    max_tm_reading = IntegerField()  # Highest TM reading in conversion table
+    min_tension_kgf = FloatField()  # Lowest kgf in conversion table
+    max_tension_kgf = FloatField()  # Highest kgf in conversion table
+
+class ConversionPoint(BaseModel):
+    id = AutoField()  # Auto-incrementing primary key
+    spoke_type_id = CharField()  # Foreign key to SpokeType
+    tm_reading = IntegerField()  # Park Tool TM-1 reading (0-50)
+    kgf = IntegerField()  # Corresponding tension in kgf
+
+    class Meta:
+        database = db
+        indexes = (
+            (('spoke_type_id', 'tm_reading'), True),  # Unique constraint
+        )
+
 class Spoke(BaseModel):
     id = CharField(primary_key=True)
-    material = CharField()
-    gauge = FloatField()  # mm - for butted spokes, use thinnest diameter
-    max_tension = FloatField()  # kgf
+    spoke_type_id = CharField()  # Foreign key to SpokeType, required
     length = FloatField()  # mm
 
 class Nipple(BaseModel):
@@ -91,7 +112,7 @@ def initialize_database():
     """Create tables if they don't exist."""
     db.connect()
     db.create_tables([
-        Hub, Rim, Spoke, Nipple,
+        Hub, Rim, SpokeType, ConversionPoint, Spoke, Nipple,
         WheelBuild, TensionSession, TensionReading
     ], safe=True)
     db.close()
