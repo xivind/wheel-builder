@@ -46,7 +46,7 @@
                         <select class="form-select" id="spoke_left_id" name="spoke_left_id">
                             <option value="">Select spoke...</option>
                             {% for spoke in spokes %}
-                            <option value="{{ spoke.id }}" {% if build and build.spoke_left_id == spoke.id %}selected{% endif %}>{{ spoke.material }} {{ spoke.gauge }}mm - {{ spoke.length }}mm</option>
+                            <option value="{{ spoke.id }}" {% if build and build.spoke_left_id == spoke.id %}selected{% endif %}>{{ spoke.spoke_type.name }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -55,7 +55,7 @@
                         <select class="form-select" id="spoke_right_id" name="spoke_right_id">
                             <option value="">Select spoke...</option>
                             {% for spoke in spokes %}
-                            <option value="{{ spoke.id }}" {% if build and build.spoke_right_id == spoke.id %}selected{% endif %}>{{ spoke.material }} {{ spoke.gauge }}mm - {{ spoke.length }}mm</option>
+                            <option value="{{ spoke.id }}" {% if build and build.spoke_right_id == spoke.id %}selected{% endif %}>{{ spoke.spoke_type.name }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
                     </div>

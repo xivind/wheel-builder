@@ -196,20 +196,24 @@
                         <h6 class="text-primary mb-3"><i class="bi bi-arrow-left"></i> Spoke Left</h6>
                         {% if spoke_left %}
                         <div class="mb-2">
-                            <span class="text-muted">Material:</span>
-                            <span class="float-end fw-bold">{{ spoke_left.material|title }}</span>
+                            <span class="text-muted">Type:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.spoke_type.name }}</span>
                         </div>
                         <div class="mb-2">
-                            <span class="text-muted">Gauge:</span>
-                            <span class="float-end fw-bold">{{ spoke_left.gauge }}mm</span>
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.spoke_type.material }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Dimensions:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.spoke_type.dimensions }}</span>
                         </div>
                         <div class="mb-2">
                             <span class="text-muted">Length:</span>
                             <span class="float-end fw-bold">{{ spoke_left.length }}mm</span>
                         </div>
                         <div class="mb-2">
-                            <span class="text-muted">Max Tension:</span>
-                            <span class="float-end fw-bold">{{ spoke_left.max_tension }} kgf</span>
+                            <span class="text-muted">Tension Range:</span>
+                            <span class="float-end fw-bold">{{ spoke_left.spoke_type.min_tension_kgf }}-{{ spoke_left.spoke_type.max_tension_kgf }} kgf</span>
                         </div>
                         {% else %}
                         <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
@@ -221,20 +225,24 @@
                         <h6 class="text-primary mb-3"><i class="bi bi-arrow-right"></i> Spoke Right</h6>
                         {% if spoke_right %}
                         <div class="mb-2">
-                            <span class="text-muted">Material:</span>
-                            <span class="float-end fw-bold">{{ spoke_right.material|title }}</span>
+                            <span class="text-muted">Type:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.spoke_type.name }}</span>
                         </div>
                         <div class="mb-2">
-                            <span class="text-muted">Gauge:</span>
-                            <span class="float-end fw-bold">{{ spoke_right.gauge }}mm</span>
+                            <span class="text-muted">Material:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.spoke_type.material }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Dimensions:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.spoke_type.dimensions }}</span>
                         </div>
                         <div class="mb-2">
                             <span class="text-muted">Length:</span>
                             <span class="float-end fw-bold">{{ spoke_right.length }}mm</span>
                         </div>
                         <div class="mb-2">
-                            <span class="text-muted">Max Tension:</span>
-                            <span class="float-end fw-bold">{{ spoke_right.max_tension }} kgf</span>
+                            <span class="text-muted">Tension Range:</span>
+                            <span class="float-end fw-bold">{{ spoke_right.spoke_type.min_tension_kgf }}-{{ spoke_right.spoke_type.max_tension_kgf }} kgf</span>
                         </div>
                         {% else %}
                         <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
