@@ -1,6 +1,6 @@
 from database_model import initialize_database, db
 from database_manager import (
-    create_hub, create_rim, create_spoke, create_nipple,
+    create_hub, create_rim, create_nipple,
     get_all_hubs, get_all_rims, get_all_spokes, get_all_nipples
 )
 from logger import logger
@@ -54,17 +54,34 @@ def seed_components():
     for rim_data in rims_data:
         create_rim(**rim_data)
 
-    # Seed Spokes
+    # Seed Spokes - using spoke type system
+    # Get some spoke types to use for seeding
+    from database_manager import get_all_spoke_types
+    from database_model import Spoke
+    import uuid
+
+    spoke_types = get_all_spoke_types()
+    if not spoke_types:
+        logger.warning("No spoke types found - run seed_spoke_types.py first")
+        return
+
+    # Find specific spoke types by name
+    steel_round_2mm = next((st for st in spoke_types if st.name == "Steel Round 2.0mm"), None)
+    steel_round_18mm = next((st for st in spoke_types if st.name == "Steel Round 1.8mm"), None)
+    titanium_round_2mm = next((st for st in spoke_types if st.name == "Titanium Round 2.0mm"), None)
+
+    # Create sample spokes using spoke types
     spokes_data = [
-        {"material": "Steel", "gauge": 2.0, "max_tension": 120, "length": 282},
-        {"material": "Steel", "gauge": 2.0, "max_tension": 120, "length": 286},
-        {"material": "Stainless Steel", "gauge": 1.8, "max_tension": 130, "length": 282},  # 2.0/1.8/2.0 butted - use thinnest
-        {"material": "Steel", "gauge": 1.8, "max_tension": 100, "length": 282},
-        {"material": "Titanium", "gauge": 2.0, "max_tension": 140, "length": 282},
+        {"spoke_type_id": steel_round_2mm.id, "length": 282} if steel_round_2mm else None,
+        {"spoke_type_id": steel_round_2mm.id, "length": 286} if steel_round_2mm else None,
+        {"spoke_type_id": steel_round_18mm.id, "length": 282} if steel_round_18mm else None,
+        {"spoke_type_id": steel_round_18mm.id, "length": 284} if steel_round_18mm else None,
+        {"spoke_type_id": titanium_round_2mm.id, "length": 282} if titanium_round_2mm else None,
     ]
 
-    for spoke_data in spokes_data:
-        create_spoke(**spoke_data)
+    # Filter out None entries and create spokes
+    for spoke_data in [s for s in spokes_data if s]:
+        Spoke.create(id=str(uuid.uuid4()), **spoke_data)
 
     # Seed Nipples
     nipples_data = [
