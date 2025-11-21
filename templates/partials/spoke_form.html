@@ -8,60 +8,132 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form method="POST" action="{% if spoke %}/config/spoke/{{ spoke.id }}/update{% else %}/config/spoke/create{% endif %}">
-            <div class="modal-body">
-                {% if locked %}
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>This component is locked.</strong>
-                    It is being used by the following builds and cannot be edited:
-                    <ul class="mb-0 mt-2">
-                        {% for build in used_by_builds %}
-                        <li><a href="/build/{{ build.id }}">{{ build.name }}</a></li>
-                        {% endfor %}
-                    </ul>
+    <div class="modal-body">
+        {% if locked %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>This component is locked.</strong>
+            It is being used by the following builds and cannot be edited:
+            <ul class="mb-0 mt-2">
+                {% for build in used_by_builds %}
+                <li><a href="/build/{{ build.id }}">{{ build.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-circle"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if spoke %}
+        {# Edit mode - show spoke type as readonly #}
+        <div class="mb-3">
+            <label class="form-label">Spoke Type</label>
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title mb-2">{{ spoke.spoke_type.name }}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Material:</small>
+                            <div>{{ spoke.spoke_type.material }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Dimensions:</small>
+                            <div>{{ spoke.spoke_type.dimensions }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Tension Range:</small>
+                        <div>{{ spoke.spoke_type.min_tm_reading }} ({{ spoke.spoke_type.min_tension_kgf }} kgf) - {{ spoke.spoke_type.max_tm_reading }} ({{ spoke.spoke_type.max_tension_kgf }} kgf)</div>
+                    </div>
                 </div>
-                {% endif %}
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="material" class="form-label">Material <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="material" name="material"
-                               value="{% if spoke %}{{ spoke.material }}{% endif %}"
-                               placeholder="e.g., Steel, Stainless Steel" {% if locked %}disabled{% else %}required{% endif %}>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="gauge" class="form-label">Gauge (mm) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.1" min="1.0" class="form-control" id="gauge" name="gauge"
-                               value="{% if spoke %}{{ spoke.gauge }}{% endif %}"
-                               placeholder="2.0" {% if locked %}disabled{% else %}required{% endif %}>
-                        <small class="form-text text-muted">For butted spokes (e.g. 2.0/1.8/2.0), enter the thinnest diameter (1.8)</small>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="max_tension" class="form-label">Max Tension (kgf) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.1" class="form-control" id="max_tension" name="max_tension"
-                               value="{% if spoke %}{{ spoke.max_tension }}{% endif %}"
-                               placeholder="kgf" {% if locked %}disabled{% else %}required{% endif %}>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="length" class="form-label">Length (mm) <span class="text-danger">*</span></label>
-                        <input type="number" step="0.1" class="form-control" id="length" name="length"
-                               value="{% if spoke %}{{ spoke.length }}{% endif %}"
-                               placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
-                    </div>
-                </div>
-                <p class="text-muted small mt-3">
-                    <i class="bi bi-info-circle"></i> All fields are required
-                </p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                {% if not locked %}
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg"></i> {% if spoke %}Update{% else %}Create{% endif %} Spoke
-                </button>
-                {% endif %}
+            <input type="hidden" name="spoke_type_id" value="{{ spoke.spoke_type_id }}">
+        </div>
+
+        {% else %}
+        {# Create mode - allow spoke type selection #}
+        <div class="mb-3">
+            <label for="spoke_type_id" class="form-label">Spoke Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="spoke_type_id" name="spoke_type_id" required onchange="updateSpokeTypeInfo(this)">
+                <option value="">Select spoke type...</option>
+                {% for spoke_type in spoke_types %}
+                <option value="{{ spoke_type.id }}"
+                        data-material="{{ spoke_type.material }}"
+                        data-dimensions="{{ spoke_type.dimensions }}"
+                        data-min-tm="{{ spoke_type.min_tm_reading }}"
+                        data-max-tm="{{ spoke_type.max_tm_reading }}"
+                        data-min-kgf="{{ spoke_type.min_tension_kgf }}"
+                        data-max-kgf="{{ spoke_type.max_tension_kgf }}">
+                    {{ spoke_type.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="spoke-type-info" class="card bg-light mb-3" style="display: none;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Material:</small>
+                        <div id="info-material">-</div>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">Dimensions:</small>
+                        <div id="info-dimensions">-</div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">Tension Range:</small>
+                    <div id="info-range">-</div>
+                </div>
             </div>
-        </form>
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="length" class="form-label">Length (mm) <span class="text-danger">*</span></label>
+            <input type="number" step="0.1" min="0.1" class="form-control" id="length" name="length"
+                   value="{% if spoke %}{{ spoke.length }}{% endif %}"
+                   placeholder="260" {% if locked %}disabled{% else %}required{% endif %}>
+        </div>
+
+        <p class="text-muted small mt-3">
+            <i class="bi bi-info-circle"></i>
+            {% if spoke %}Only length can be edited.{% else %}All fields are required{% endif %}
+        </p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        {% if not locked %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> {% if spoke %}Update{% else %}Create{% endif %} Spoke
+        </button>
+        {% endif %}
+    </div>
+</form>
+
+<script>
+function updateSpokeTypeInfo(select) {
+    const option = select.selectedOptions[0];
+    const infoDiv = document.getElementById('spoke-type-info');
+
+    if (!option.value) {
+        infoDiv.style.display = 'none';
+        return;
+    }
+
+    document.getElementById('info-material').textContent = option.dataset.material;
+    document.getElementById('info-dimensions').textContent = option.dataset.dimensions;
+    document.getElementById('info-range').textContent =
+        `${option.dataset.minTm} (${option.dataset.minKgf} kgf) - ${option.dataset.maxTm} (${option.dataset.maxKgf} kgf)`;
+
+    infoDiv.style.display = 'block';
+}
+</script>
     </div>
 </div>
