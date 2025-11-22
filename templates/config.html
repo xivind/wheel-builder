@@ -16,22 +16,22 @@
     <ul class="nav nav-tabs mb-4" id="componentTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="hubs-tab" data-bs-toggle="tab" data-bs-target="#hubs" type="button" role="tab">
-                <i class="bi bi-circle"></i> Hubs <span class="badge bg-primary">{{ hubs|length }}</span>
+                Hubs <span class="badge bg-primary">{{ hubs|length }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="rims-tab" data-bs-toggle="tab" data-bs-target="#rims" type="button" role="tab">
-                <i class="bi bi-record-circle"></i> Rims <span class="badge bg-primary">{{ rims|length }}</span>
+                Rims <span class="badge bg-primary">{{ rims|length }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="spokes-tab" data-bs-toggle="tab" data-bs-target="#spokes" type="button" role="tab">
-                <i class="bi bi-dash-lg"></i> Spokes <span class="badge bg-primary">{{ spokes|length }}</span>
+                Spokes <span class="badge bg-primary">{{ spokes|length }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="nipples-tab" data-bs-toggle="tab" data-bs-target="#nipples" type="button" role="tab">
-                <i class="bi bi-dot"></i> Nipples <span class="badge bg-primary">{{ nipples|length }}</span>
+                Nipples <span class="badge bg-primary">{{ nipples|length }}</span>
             </button>
         </li>
     </ul>
@@ -41,7 +41,7 @@
         <div class="tab-pane fade show active" id="hubs" role="tabpanel">
             <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid var(--secondary-color);">
-                    <span style="font-weight: 600; color: var(--primary-color);"><i class="bi bi-circle"></i> Hub Library</span>
+                    <span style="font-weight: 600; color: var(--primary-color);">Hub Library</span>
                     <button class="btn btn-primary btn-sm"
                             hx-get="/partials/hub-form"
                             hx-target="#component-modal-container"
@@ -120,7 +120,7 @@
         <div class="tab-pane fade" id="rims" role="tabpanel">
             <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid var(--secondary-color);">
-                    <span style="font-weight: 600; color: var(--primary-color);"><i class="bi bi-record-circle"></i> Rim Library</span>
+                    <span style="font-weight: 600; color: var(--primary-color);">Rim Library</span>
                     <button class="btn btn-primary btn-sm"
                             hx-get="/partials/rim-form"
                             hx-target="#component-modal-container"
@@ -199,7 +199,7 @@
         <div class="tab-pane fade" id="spokes" role="tabpanel">
             <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid var(--secondary-color);">
-                    <span style="font-weight: 600; color: var(--primary-color);"><i class="bi bi-dash-lg"></i> Spoke Library</span>
+                    <span style="font-weight: 600; color: var(--primary-color);">Spoke Library</span>
                     <button class="btn btn-primary btn-sm"
                             hx-get="/partials/spoke-form"
                             hx-target="#component-modal-container"
@@ -269,7 +269,7 @@
         <div class="tab-pane fade" id="nipples" role="tabpanel">
             <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid var(--secondary-color);">
-                    <span style="font-weight: 600; color: var(--primary-color);"><i class="bi bi-dot"></i> Nipple Library</span>
+                    <span style="font-weight: 600; color: var(--primary-color);">Nipple Library</span>
                     <button class="btn btn-primary btn-sm"
                             hx-get="/partials/nipple-form"
                             hx-target="#component-modal-container"

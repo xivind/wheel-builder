@@ -97,7 +97,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light h-100">
-                        <h6 class="text-primary mb-3"><i class="bi bi-bullseye"></i> Hub</h6>
+                        <h6 class="text-primary mb-3">Hub</h6>
                         {% if hub %}
                         <div class="mb-2">
                             <span class="text-muted">Make/Model:</span>
@@ -126,7 +126,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light h-100">
-                        <h6 class="text-primary mb-3"><i class="bi bi-circle"></i> Rim</h6>
+                        <h6 class="text-primary mb-3">Rim</h6>
                         {% if rim %}
                         <div class="mb-2">
                             <span class="text-muted">Make/Model:</span>
@@ -155,7 +155,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light h-100">
-                        <h6 class="text-primary mb-3"><i class="bi bi-asterisk"></i> Lacing Configuration</h6>
+                        <h6 class="text-primary mb-3">Lacing Configuration</h6>
                         <div class="mb-2">
                             <span class="text-muted">Pattern:</span>
                             <span class="float-end fw-bold">{{ build.lacing_pattern|replace('-', ' ')|title if build.lacing_pattern else 'Not set' }}</span>
@@ -168,7 +168,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light h-100">
-                        <h6 class="text-primary mb-3"><i class="bi bi-nut"></i> Nipple</h6>
+                        <h6 class="text-primary mb-3">Nipple</h6>
                         {% if nipple %}
                         <div class="mb-2">
                             <span class="text-muted">Material:</span>
@@ -193,7 +193,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light h-100">
-                        <h6 class="text-primary mb-3"><i class="bi bi-arrow-left"></i> Spoke Left</h6>
+                        <h6 class="text-primary mb-3">Spoke Left</h6>
                         {% if spoke_left %}
                         <div class="mb-2">
                             <span class="text-muted">Type:</span>
@@ -222,7 +222,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <div class="border rounded p-3 bg-light h-100">
-                        <h6 class="text-primary mb-3"><i class="bi bi-arrow-right"></i> Spoke Right</h6>
+                        <h6 class="text-primary mb-3">Spoke Right</h6>
                         {% if spoke_right %}
                         <div class="mb-2">
                             <span class="text-muted">Type:</span>
@@ -292,8 +292,8 @@
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <div class="border rounded p-3" style="border-left: 4px solid var(--success-color) !important;">
-                        <h6 class="text-success mb-3"><i class="bi bi-arrow-right"></i> Right Side</h6>
+                    <div class="border rounded p-3" style="border-left: 4px solid var(--secondary-color) !important;">
+                        <h6 class="text-secondary mb-3"><i class="bi bi-arrow-right"></i> Right Side</h6>
                         <div class="mb-2">
                             <span class="text-muted">Calculated Length:</span>
                             <span class="float-end fw-bold fs-5 text-primary">{{ "%.3f"|format(calculated_right) }}mm</span>
