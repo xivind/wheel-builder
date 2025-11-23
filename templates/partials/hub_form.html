@@ -89,6 +89,13 @@
                                value="{% if hub %}{{ hub.spoke_hole_diameter }}{% endif %}"
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="number_of_spokes" class="form-label">Number of Spokes</label>
+                        <input type="number" class="form-control" id="number_of_spokes"
+                               name="number_of_spokes"
+                               value="{% if hub and hub.number_of_spokes %}{{ hub.number_of_spokes }}{% endif %}"
+                               placeholder="e.g., 32, 36" {% if locked %}disabled{% endif %}>
+                    </div>
                 </div>
                 <p class="text-muted small mt-3">
                     <i class="bi bi-info-circle"></i> All fields are required

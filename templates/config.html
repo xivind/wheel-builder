@@ -65,6 +65,7 @@
                                     <th>Left Offset</th>
                                     <th>Right Offset</th>
                                     <th>Hole Ø</th>
+                                    <th>Spokes</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -85,6 +86,7 @@
                                     <td>{{ hub.left_flange_offset }}</td>
                                     <td>{{ hub.right_flange_offset }}</td>
                                     <td>{{ hub.spoke_hole_diameter }}</td>
+                                    <td>{{ hub.number_of_spokes if hub.number_of_spokes else '-' }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary me-1"
                                                 hx-get="/partials/hub-form?id={{ hub.id }}"

@@ -119,6 +119,12 @@
                             <span class="text-muted">Right Flange Ø:</span>
                             <span class="float-end fw-bold">{{ hub.right_flange_diameter }}mm</span>
                         </div>
+                        {% if hub.number_of_spokes %}
+                        <div class="mb-2">
+                            <span class="text-muted">Number of Spokes:</span>
+                            <span class="float-end fw-bold">{{ hub.number_of_spokes }}</span>
+                        </div>
+                        {% endif %}
                         {% else %}
                         <p class="text-muted mb-0"><i class="bi bi-exclamation-triangle"></i> Not selected</p>
                         {% endif %}
@@ -341,7 +347,7 @@
     </div>
 
     <!-- Tension Tracking Section -->
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="card border-0 shadow-sm mb-4" id="tension-tracking">
         <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-activity"></i> Tension Tracking</h5>
             <button class="btn btn-sm btn-primary"
@@ -369,14 +375,21 @@
 
             {% if selected_session %}
             <div class="border rounded p-3 bg-light mb-3">
-                <h6 class="text-primary mb-3"><i class="bi bi-clipboard-data"></i> Session Details</h6>
-                <div class="mb-2">
-                    <span class="text-muted">Name:</span>
-                    <span class="float-end fw-bold">{{ selected_session.session_name }}</span>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="text-primary mb-0"><i class="bi bi-clipboard-data"></i> Session Details</h6>
+                    <form method="POST" action="/build/{{ build.id }}/session/{{ selected_session.id }}/delete" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this session? All tension readings will be lost. This action cannot be undone.');">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i> Delete Session
+                        </button>
+                    </form>
                 </div>
                 <div class="mb-2">
-                    <span class="text-muted">Date:</span>
-                    <span class="float-end fw-bold">{{ selected_session.session_date.strftime('%B %d, %Y') if selected_session.session_date else 'N/A' }}</span>
+                    <span class="fw-bold">Name:</span>
+                    <span class="text-muted"> {{ selected_session.session_name }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="fw-bold">Date:</span>
+                    <span class="text-muted"> {{ selected_session.session_date.strftime('%B %d, %Y') if selected_session.session_date else 'N/A' }}</span>
                 </div>
                 {% if selected_session.notes %}
                 <div class="mt-3">

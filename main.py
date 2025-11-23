@@ -149,6 +149,35 @@ async def create_build(
         lacing_pattern = lacing_pattern if lacing_pattern else None
         comments = comments if comments else None
 
+        # Validate spoke count matches between hub and rim if both are set
+        if hub_id and rim_id:
+            hub = get_hub_by_id(hub_id)
+            rim = get_rim_by_id(rim_id)
+
+            if hub and hub.number_of_spokes and rim and rim.holes:
+                if hub.number_of_spokes != rim.holes:
+                    return templates.TemplateResponse("error.html", {
+                        "request": request,
+                        "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
+                    }, status_code=400)
+
+        # Validate spoke_count matches hub and rim if all are set
+        if spoke_count and hub_id:
+            hub = get_hub_by_id(hub_id)
+            if hub and hub.number_of_spokes and hub.number_of_spokes != spoke_count:
+                return templates.TemplateResponse("error.html", {
+                    "request": request,
+                    "error_message": f"Build spoke count ({spoke_count}) does not match hub spoke count ({hub.number_of_spokes})."
+                }, status_code=400)
+
+        if spoke_count and rim_id:
+            rim = get_rim_by_id(rim_id)
+            if rim and rim.holes and rim.holes != spoke_count:
+                return templates.TemplateResponse("error.html", {
+                    "request": request,
+                    "error_message": f"Build spoke count ({spoke_count}) does not match rim hole count ({rim.holes})."
+                }, status_code=400)
+
         build = create_wheel_build(
             name=name,
             status='draft',
@@ -374,6 +403,35 @@ async def update_build_route(
         lacing_pattern = lacing_pattern if lacing_pattern else None
         comments = comments if comments else None
 
+        # Validate spoke count matches between hub and rim if both are set
+        if hub_id and rim_id:
+            hub = get_hub_by_id(hub_id)
+            rim = get_rim_by_id(rim_id)
+
+            if hub and hub.number_of_spokes and rim and rim.holes:
+                if hub.number_of_spokes != rim.holes:
+                    return templates.TemplateResponse("error.html", {
+                        "request": request,
+                        "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
+                    }, status_code=400)
+
+        # Validate spoke_count matches hub and rim if all are set
+        if spoke_count and hub_id:
+            hub = get_hub_by_id(hub_id)
+            if hub and hub.number_of_spokes and hub.number_of_spokes != spoke_count:
+                return templates.TemplateResponse("error.html", {
+                    "request": request,
+                    "error_message": f"Build spoke count ({spoke_count}) does not match hub spoke count ({hub.number_of_spokes})."
+                }, status_code=400)
+
+        if spoke_count and rim_id:
+            rim = get_rim_by_id(rim_id)
+            if rim and rim.holes and rim.holes != spoke_count:
+                return templates.TemplateResponse("error.html", {
+                    "request": request,
+                    "error_message": f"Build spoke count ({spoke_count}) does not match rim hole count ({rim.holes})."
+                }, status_code=400)
+
         success = update_wheel_build(
             build_id=build_id,
             name=name,
@@ -465,13 +523,56 @@ async def create_session_route(
 
         logger.info(f"Created tension session: {session_name} for build {build_id} (ID: {session.id})")
 
-        # Redirect to build details with the new session selected
-        return RedirectResponse(url=f"/build/{build_id}?session={session.id}", status_code=303)
+        # Redirect to build details with the new session selected, maintaining scroll position
+        return RedirectResponse(url=f"/build/{build_id}?session={session.id}#tension-tracking", status_code=303)
     except Exception as e:
         logger.error(f"Error creating tension session: {e}")
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error_message": "Unable to create tension session. Please try again later."
+        }, status_code=500)
+
+@app.post("/build/{build_id}/session/{session_id}/delete")
+async def delete_session_route(
+    request: Request,
+    build_id: str,
+    session_id: str
+):
+    """Delete a tension session and all its readings."""
+    try:
+        from database_manager import delete_tension_session
+
+        # Verify the build exists
+        build = get_wheel_build_by_id(build_id)
+        if not build:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Build not found."
+            }, status_code=404)
+
+        # Verify the session exists and belongs to this build
+        session = get_tension_session_by_id(session_id)
+        if not session or session.wheel_build_id != build_id:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Session not found."
+            }, status_code=404)
+
+        # Delete the session
+        if delete_tension_session(session_id):
+            logger.info(f"Deleted tension session {session_id} from build {build_id}")
+            # Redirect back to build details, staying in the tension tracking section
+            return RedirectResponse(url=f"/build/{build_id}#tension-tracking", status_code=303)
+        else:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Failed to delete session."
+            }, status_code=500)
+    except Exception as e:
+        logger.error(f"Error deleting tension session: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to delete tension session. Please try again later."
         }, status_code=500)
 
 @app.post("/build/{build_id}/session/{session_id}/readings")
@@ -998,7 +1099,8 @@ async def create_hub_route(
     right_flange_diameter: float = Form(...),
     left_flange_offset: float = Form(...),
     right_flange_offset: float = Form(...),
-    spoke_hole_diameter: float = Form(...)
+    spoke_hole_diameter: float = Form(...),
+    number_of_spokes: int = Form(None)
 ):
     """Create a new hub."""
     try:
@@ -1011,7 +1113,8 @@ async def create_hub_route(
             right_flange_diameter=right_flange_diameter,
             left_flange_offset=left_flange_offset,
             right_flange_offset=right_flange_offset,
-            spoke_hole_diameter=spoke_hole_diameter
+            spoke_hole_diameter=spoke_hole_diameter,
+            number_of_spokes=number_of_spokes
         )
         logger.info(f"Created hub: {make} {model} (ID: {hub.id})")
         return RedirectResponse(url="/config#hubs", status_code=303)
@@ -1034,7 +1137,8 @@ async def update_hub_route(
     right_flange_diameter: float = Form(...),
     left_flange_offset: float = Form(...),
     right_flange_offset: float = Form(...),
-    spoke_hole_diameter: float = Form(...)
+    spoke_hole_diameter: float = Form(...),
+    number_of_spokes: int = Form(None)
 ):
     """Update an existing hub."""
     try:
@@ -1054,7 +1158,8 @@ async def update_hub_route(
             right_flange_diameter=right_flange_diameter,
             left_flange_offset=left_flange_offset,
             right_flange_offset=right_flange_offset,
-            spoke_hole_diameter=spoke_hole_diameter
+            spoke_hole_diameter=spoke_hole_diameter,
+            number_of_spokes=number_of_spokes
         )
         if not success:
             logger.warning(f"Failed to update hub {hub_id}")

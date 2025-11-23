@@ -8,7 +8,7 @@ from logger import logger
 # Hub operations
 
 def create_hub(make, model, hub_type, old, left_flange_diameter, right_flange_diameter,
-               left_flange_offset, right_flange_offset, spoke_hole_diameter):
+               left_flange_offset, right_flange_offset, spoke_hole_diameter, number_of_spokes=None):
     """Create a new hub in the database."""
     hub_id = generate_uuid()
     hub = Hub.create(
@@ -21,7 +21,8 @@ def create_hub(make, model, hub_type, old, left_flange_diameter, right_flange_di
         right_flange_diameter=right_flange_diameter,
         left_flange_offset=left_flange_offset,
         right_flange_offset=right_flange_offset,
-        spoke_hole_diameter=spoke_hole_diameter
+        spoke_hole_diameter=spoke_hole_diameter,
+        number_of_spokes=number_of_spokes
     )
     logger.info(f"Created hub: {make} {model} (ID: {hub_id})")
     return hub
@@ -360,6 +361,20 @@ def get_tension_session_by_id(session_id):
         return TensionSession.get_by_id(session_id)
     except TensionSession.DoesNotExist:
         return None
+
+def delete_tension_session(session_id):
+    """Delete a tension session and all its associated readings."""
+    try:
+        session = TensionSession.get_by_id(session_id)
+        # Delete all readings associated with this session
+        TensionReading.delete().where(TensionReading.tension_session_id == session_id).execute()
+        # Delete the session itself
+        session.delete_instance()
+        logger.info(f"Deleted tension session: {session_id}")
+        return True
+    except TensionSession.DoesNotExist:
+        logger.warning(f"Cannot delete session {session_id}: does not exist")
+        return False
 
 # Tension Reading operations
 

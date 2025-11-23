@@ -23,6 +23,7 @@ class Hub(BaseModel):
     left_flange_offset = FloatField()
     right_flange_offset = FloatField()
     spoke_hole_diameter = FloatField()
+    number_of_spokes = IntegerField(null=True)  # number of spoke holes in the hub
 
 class Rim(BaseModel):
     id = CharField(primary_key=True)
