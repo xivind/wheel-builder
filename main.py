@@ -135,7 +135,6 @@ async def create_build(
     spoke_right_id: str = Form(None),
     nipple_id: str = Form(None),
     lacing_pattern: str = Form(None),
-    spoke_count: Optional[int] = Form(None),
     comments: str = Form(None)
 ):
     """Create a new wheel build."""
@@ -149,6 +148,13 @@ async def create_build(
         lacing_pattern = lacing_pattern if lacing_pattern else None
         comments = comments if comments else None
 
+        # Auto-compute spoke_count from rim if rim is selected
+        spoke_count = None
+        if rim_id:
+            rim = get_rim_by_id(rim_id)
+            if rim:
+                spoke_count = rim.holes
+
         # Validate spoke count matches between hub and rim if both are set
         if hub_id and rim_id:
             hub = get_hub_by_id(hub_id)
@@ -160,23 +166,6 @@ async def create_build(
                         "request": request,
                         "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
                     }, status_code=400)
-
-        # Validate spoke_count matches hub and rim if all are set
-        if spoke_count and hub_id:
-            hub = get_hub_by_id(hub_id)
-            if hub and hub.number_of_spokes and hub.number_of_spokes != spoke_count:
-                return templates.TemplateResponse("error.html", {
-                    "request": request,
-                    "error_message": f"Build spoke count ({spoke_count}) does not match hub spoke count ({hub.number_of_spokes})."
-                }, status_code=400)
-
-        if spoke_count and rim_id:
-            rim = get_rim_by_id(rim_id)
-            if rim and rim.holes and rim.holes != spoke_count:
-                return templates.TemplateResponse("error.html", {
-                    "request": request,
-                    "error_message": f"Build spoke count ({spoke_count}) does not match rim hole count ({rim.holes})."
-                }, status_code=400)
 
         build = create_wheel_build(
             name=name,
@@ -387,7 +376,6 @@ async def update_build_route(
     spoke_right_id: Optional[str] = Form(None),
     nipple_id: Optional[str] = Form(None),
     lacing_pattern: Optional[str] = Form(None),
-    spoke_count: Optional[int] = Form(None),
     comments: Optional[str] = Form(None),
     status: Optional[str] = Form("draft")
 ):
@@ -402,6 +390,13 @@ async def update_build_route(
         lacing_pattern = lacing_pattern if lacing_pattern else None
         comments = comments if comments else None
 
+        # Auto-compute spoke_count from rim if rim is selected
+        spoke_count = None
+        if rim_id:
+            rim = get_rim_by_id(rim_id)
+            if rim:
+                spoke_count = rim.holes
+
         # Validate spoke count matches between hub and rim if both are set
         if hub_id and rim_id:
             hub = get_hub_by_id(hub_id)
@@ -413,23 +408,6 @@ async def update_build_route(
                         "request": request,
                         "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
                     }, status_code=400)
-
-        # Validate spoke_count matches hub and rim if all are set
-        if spoke_count and hub_id:
-            hub = get_hub_by_id(hub_id)
-            if hub and hub.number_of_spokes and hub.number_of_spokes != spoke_count:
-                return templates.TemplateResponse("error.html", {
-                    "request": request,
-                    "error_message": f"Build spoke count ({spoke_count}) does not match hub spoke count ({hub.number_of_spokes})."
-                }, status_code=400)
-
-        if spoke_count and rim_id:
-            rim = get_rim_by_id(rim_id)
-            if rim and rim.holes and rim.holes != spoke_count:
-                return templates.TemplateResponse("error.html", {
-                    "request": request,
-                    "error_message": f"Build spoke count ({spoke_count}) does not match rim hole count ({rim.holes})."
-                }, status_code=400)
 
         success = update_wheel_build(
             build_id=build_id,

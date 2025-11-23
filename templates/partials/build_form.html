@@ -71,9 +71,6 @@
                             {% endfor %}
                         </select>
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="lacing_pattern" class="form-label">Lacing Pattern</label>
                         <select class="form-select" id="lacing_pattern" name="lacing_pattern">
@@ -83,16 +80,6 @@
                             <option value="2-cross" {% if build and build.lacing_pattern == '2-cross' %}selected{% endif %}>2-cross</option>
                             <option value="3-cross" {% if build and build.lacing_pattern == '3-cross' %}selected{% endif %}>3-cross</option>
                             <option value="4-cross" {% if build and build.lacing_pattern == '4-cross' %}selected{% endif %}>4-cross</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="spoke_count" class="form-label">Spoke Count</label>
-                        <select class="form-select" id="spoke_count" name="spoke_count">
-                            <option value="">Select count...</option>
-                            <option value="24" {% if build and build.spoke_count == 24 %}selected{% endif %}>24</option>
-                            <option value="28" {% if build and build.spoke_count == 28 %}selected{% endif %}>28</option>
-                            <option value="32" {% if build and build.spoke_count == 32 %}selected{% endif %}>32</option>
-                            <option value="36" {% if build and build.spoke_count == 36 %}selected{% endif %}>36</option>
                         </select>
                     </div>
                 </div>
