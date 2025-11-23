@@ -171,13 +171,16 @@ def calculate_recommended_spoke_lengths(wheel_build):
         'right': right_length
     }
 
-def calculate_tension_range(spoke, rim):
+def calculate_tension_range(spoke_left, spoke_right, rim):
     """Calculate recommended min/max tension for a spoke/rim combination.
 
     Uses spoke type's calibration data directly from Park Tool conversion table.
+    When different spoke types are used for left and right, uses the lower max tension
+    for safety.
 
     Args:
-        spoke: Spoke model instance
+        spoke_left: Left Spoke model instance (or None)
+        spoke_right: Right Spoke model instance (or None)
         rim: Rim model instance
 
     Returns:
@@ -185,22 +188,70 @@ def calculate_tension_range(spoke, rim):
             'min_kgf': float,
             'max_kgf': float,
             'min_tm_reading': int,
-            'max_tm_reading': int
+            'max_tm_reading': int,
+            'different_spoke_types': bool,  # True if left and right use different spoke types
+            'left_max_kgf': float (only if different_spoke_types=True),
+            'right_max_kgf': float (only if different_spoke_types=True)
         }
     """
     from database_manager import get_spoke_type_by_id
 
-    # Get spoke type
-    spoke_type = get_spoke_type_by_id(spoke.spoke_type_id)
+    # Use whichever spoke is available
+    spoke = spoke_left or spoke_right
+    if not spoke:
+        logger.error("No spoke provided for tension range calculation")
+        return {
+            'min_kgf': 50.0,
+            'max_kgf': 120.0,
+            'min_tm_reading': 15,
+            'max_tm_reading': 25,
+            'different_spoke_types': False
+        }
 
+    # Get spoke types
+    spoke_type_left = get_spoke_type_by_id(spoke_left.spoke_type_id) if spoke_left else None
+    spoke_type_right = get_spoke_type_by_id(spoke_right.spoke_type_id) if spoke_right else None
+
+    # Determine if we have different spoke types
+    different_spoke_types = False
+    if spoke_type_left and spoke_type_right:
+        different_spoke_types = spoke_type_left.id != spoke_type_right.id
+
+    # If we have both spokes and they're different types, use the lower max tension
+    if different_spoke_types:
+        min_kgf = min(spoke_type_left.min_tension_kgf, spoke_type_right.min_tension_kgf)
+        max_kgf = min(spoke_type_left.max_tension_kgf, spoke_type_right.max_tension_kgf)
+        min_tm = min(spoke_type_left.min_tm_reading, spoke_type_right.min_tm_reading)
+        max_tm = max(spoke_type_left.max_tm_reading, spoke_type_right.max_tm_reading)
+
+        logger.info(
+            f"Different spoke types detected - Left: {spoke_type_left.name} "
+            f"(max {spoke_type_left.max_tension_kgf} kgf), "
+            f"Right: {spoke_type_right.name} (max {spoke_type_right.max_tension_kgf} kgf). "
+            f"Using lower max: {max_kgf} kgf"
+        )
+
+        return {
+            'min_kgf': min_kgf,
+            'max_kgf': max_kgf,
+            'min_tm_reading': min_tm,
+            'max_tm_reading': max_tm,
+            'different_spoke_types': True,
+            'left_max_kgf': spoke_type_left.max_tension_kgf,
+            'right_max_kgf': spoke_type_right.max_tension_kgf
+        }
+
+    # Same spoke type (or only one spoke available)
+    spoke_type = spoke_type_left or spoke_type_right
     if not spoke_type:
-        logger.error(f"SpokeType {spoke.spoke_type_id} not found for spoke {spoke.id}")
+        logger.error(f"SpokeType not found for spoke")
         # Return safe defaults if spoke type not found
         return {
             'min_kgf': 50.0,
             'max_kgf': 120.0,
             'min_tm_reading': 15,
-            'max_tm_reading': 25
+            'max_tm_reading': 25,
+            'different_spoke_types': False
         }
 
     logger.info(
@@ -213,7 +264,8 @@ def calculate_tension_range(spoke, rim):
         'min_kgf': spoke_type.min_tension_kgf,
         'max_kgf': spoke_type.max_tension_kgf,
         'min_tm_reading': spoke_type.min_tm_reading,
-        'max_tm_reading': spoke_type.max_tm_reading
+        'max_tm_reading': spoke_type.max_tm_reading,
+        'different_spoke_types': False
     }
 
 def analyze_tension_readings(readings, tension_range):

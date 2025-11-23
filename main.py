@@ -266,11 +266,10 @@ async def build_details(request: Request, build_id: str, session: str = None):
             )
 
         # Calculate tension range if spoke and rim are available
-        # Use spoke_left if available, otherwise spoke_right (tension range is based on spoke specs, not length)
         tension_range = None
         spoke_for_tension = spoke_left or spoke_right
         if spoke_for_tension and rim:
-            tension_range = calculate_tension_range(spoke_for_tension, rim)
+            tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
 
         # Fetch tension sessions for this build
         sessions = get_sessions_by_build(build_id)
@@ -309,7 +308,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
 
                 # Calculate statistics and quality status if we have readings
                 if readings and spoke_for_tension and rim:
-                    tension_range = calculate_tension_range(spoke_for_tension, rim)
+                    tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
                     analysis = analyze_tension_readings(readings, tension_range)
 
                     stats_left = analysis['left']
@@ -615,7 +614,7 @@ async def save_tension_readings(
         form_data = await request.form()
 
         # Calculate tension range
-        tension_range = calculate_tension_range(spoke_for_tension, rim)
+        tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
 
         # Collect all readings data
         readings_data = []
@@ -635,8 +634,11 @@ async def save_tension_readings(
             side = parts[2]  # 'left' or 'right'
             tm_reading = float(value)
 
-            # Convert to kgf - now returns dict with 'kgf' and 'status' keys
-            conversion_result = tm_reading_to_kgf(tm_reading, spoke_for_tension.spoke_type_id)
+            # Convert to kgf using side-specific spoke type
+            spoke_for_conversion = spoke_left if side == 'left' else spoke_right
+            if not spoke_for_conversion:
+                spoke_for_conversion = spoke_for_tension  # Fallback if one side is missing
+            conversion_result = tm_reading_to_kgf(tm_reading, spoke_for_conversion.spoke_type_id)
 
             # Handle conversion status
             if conversion_result['status'] in ['below_table', 'above_table']:
@@ -648,10 +650,18 @@ async def save_tension_readings(
                 # Valid conversion
                 estimated_tension_kgf = conversion_result['kgf']
 
-                # Calculate range status
+                # Determine side-specific max tension
+                if tension_range.get('different_spoke_types'):
+                    # Use side-specific max when different spoke types are used
+                    max_kgf = tension_range['left_max_kgf'] if side == 'left' else tension_range['right_max_kgf']
+                else:
+                    # Use common max when same spoke type on both sides
+                    max_kgf = tension_range['max_kgf']
+
+                # Calculate range status using side-specific max
                 if estimated_tension_kgf < tension_range['min_kgf']:
                     range_status = 'under'
-                elif estimated_tension_kgf > tension_range['max_kgf']:
+                elif estimated_tension_kgf > max_kgf:
                     range_status = 'over'
                 else:
                     range_status = 'in_range'
@@ -759,7 +769,7 @@ async def auto_save_tension_reading(
             if not spoke_for_tension or not rim:
                 return HTMLResponse("Build missing spoke or rim", status_code=400)
 
-            tension_range = calculate_tension_range(spoke_for_tension, rim)
+            tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
 
             # Fetch ALL readings again for stats calculation
             readings = get_readings_by_session(session_id)
@@ -822,9 +832,12 @@ async def auto_save_tension_reading(
         if not spoke_for_tension or not rim:
             return HTMLResponse("Build missing spoke or rim", status_code=400)
 
-        # Calculate tension range and convert TM reading to kgf
-        tension_range = calculate_tension_range(spoke_for_tension, rim)
-        conversion_result = tm_reading_to_kgf(tm_reading_float, spoke_for_tension.spoke_type_id)
+        # Calculate tension range and convert TM reading to kgf using side-specific spoke type
+        tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
+        spoke_for_conversion = spoke_left if side == 'left' else spoke_right
+        if not spoke_for_conversion:
+            spoke_for_conversion = spoke_for_tension  # Fallback if one side is missing
+        conversion_result = tm_reading_to_kgf(tm_reading_float, spoke_for_conversion.spoke_type_id)
 
         # Handle conversion status
         if conversion_result['status'] in ['below_table', 'above_table']:
@@ -836,10 +849,18 @@ async def auto_save_tension_reading(
             # Valid conversion
             estimated_tension_kgf = conversion_result['kgf']
 
-            # Calculate range status
+            # Determine side-specific max tension
+            if tension_range.get('different_spoke_types'):
+                # Use side-specific max when different spoke types are used
+                max_kgf = tension_range['left_max_kgf'] if side == 'left' else tension_range['right_max_kgf']
+            else:
+                # Use common max when same spoke type on both sides
+                max_kgf = tension_range['max_kgf']
+
+            # Calculate range status using side-specific max
             if estimated_tension_kgf < tension_range['min_kgf']:
                 range_status = 'under'
-            elif estimated_tension_kgf > tension_range['max_kgf']:
+            elif estimated_tension_kgf > max_kgf:
                 range_status = 'over'
             else:
                 range_status = 'in_range'
