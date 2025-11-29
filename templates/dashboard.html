@@ -3,15 +3,24 @@
 {% block title %}My Wheel Builds - Wheel Builder{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; margin-bottom: 2rem;">
-    <div class="container">
-        <h1 class="mb-0"><i class="bi bi-collection"></i> My Wheel Builds</h1>
-        <p class="mb-0 mt-2 opacity-75">Track and manage all your wheel building projects</p>
-    </div>
-</div>
-
 <div class="container pb-5">
+    <!-- Page Header -->
+    <div class="row mb-5 align-items-center">
+        <div class="col">
+            <h1 class="display-5 fw-bold text-dark mb-2">My Wheel Builds</h1>
+            <p class="text-muted lead mb-0">Track and manage all your wheel building projects</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn-new-config"
+                    hx-get="/partials/build-form"
+                    hx-target="#build-modal-container"
+                    hx-swap="innerHTML"
+                    title="New Build">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Stats Overview -->
     <div class="row mb-4">
         <div class="col-md-3 col-sm-6 mb-3">
@@ -93,15 +102,6 @@
         {% endif %}
     </div>
 </div>
-
-<!-- Floating Action Button -->
-<button class="fab-button"
-        hx-get="/partials/build-form"
-        hx-target="#build-modal-container"
-        hx-swap="innerHTML"
-        style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary-color), var(--success-color)); color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 1.5rem;">
-    <i class="bi bi-plus-lg"></i>
-</button>
 
 <!-- Modal Container -->
 <div class="modal fade" id="build-modal" tabindex="-1">

@@ -1,0 +1,87 @@
+/* Wheel Builder Custom Styles */
+
+body {
+    background-color: #f0f2f5;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.025em;
+}
+
+/* Delicate Plus Button */
+.btn-new-config {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #ffffff, #e2e8f0);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.btn-new-config:hover {
+    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+    color: white;
+    border-color: #2563eb;
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-new-config:active {
+    transform: translateY(0) rotate(90deg);
+}
+
+/* Premium Card Design */
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, #ffffff, #e2e8f0);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}

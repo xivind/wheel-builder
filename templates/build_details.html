@@ -3,24 +3,20 @@
 {% block title %}{{ build.name }} - Wheel Builder{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; margin-bottom: 2rem;">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h1 class="mb-0"><i class="bi bi-gear-fill"></i> {{ build.name }}</h1>
-                <p class="mb-0 mt-2 opacity-75">Build Details and Specifications</p>
-            </div>
-            <div class="mt-2 mt-md-0">
-                <span class="badge bg-{% if build.status == 'completed' %}success{% elif build.status == 'in_progress' %}warning text-dark{% else %}secondary{% endif %} fs-5">
-                    {{ build.status|replace('_', ' ')|title }}
-                </span>
-            </div>
+<div class="container pb-5">
+    <!-- Page Header -->
+    <div class="row mb-5 align-items-center">
+        <div class="col">
+            <h1 class="display-5 fw-bold text-dark mb-2">{{ build.name }}</h1>
+            <p class="text-muted lead mb-0">Build Details and Specifications</p>
+        </div>
+        <div class="col-auto">
+            <span class="badge bg-{% if build.status == 'completed' %}success{% elif build.status == 'in_progress' %}warning text-dark{% else %}secondary{% endif %} fs-5">
+                {{ build.status|replace('_', ' ')|title }}
+            </span>
         </div>
     </div>
-</div>
 
-<div class="container pb-5">
     <!-- Build Information Card -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-bottom">
