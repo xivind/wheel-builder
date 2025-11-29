@@ -22,7 +22,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="hub_id" class="form-label">Hub</label>
-                        <select class="form-select" id="hub_id" name="hub_id">
+                        <select class="form-select" id="hub_id" name="hub_id" onchange="updateSpokeLengthRecommendations()">
                             <option value="">Select hub...</option>
                             {% for hub in hubs %}
                             <option value="{{ hub.id }}" {% if build and build.hub_id == hub.id %}selected{% endif %}>{{ hub.make }} {{ hub.model }} ({{ hub.type }})</option>
@@ -31,11 +31,34 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="rim_id" class="form-label">Rim</label>
-                        <select class="form-select" id="rim_id" name="rim_id">
+                        <select class="form-select" id="rim_id" name="rim_id" onchange="updateSpokeLengthRecommendations()">
                             <option value="">Select rim...</option>
                             {% for rim in rims %}
                             <option value="{{ rim.id }}" {% if build and build.rim_id == rim.id %}selected{% endif %}>{{ rim.make }} {{ rim.model }} ({{ rim.holes }} holes)</option>
                             {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nipple_id" class="form-label">Nipple</label>
+                        <select class="form-select" id="nipple_id" name="nipple_id" onchange="updateSpokeLengthRecommendations()">
+                            <option value="">Select nipple...</option>
+                            {% for nipple in nipples %}
+                            <option value="{{ nipple.id }}" {% if build and build.nipple_id == nipple.id %}selected{% endif %}>{{ nipple.material }} {{ nipple.length }}mm {{ nipple.color }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lacing_pattern" class="form-label">Lacing Pattern</label>
+                        <select class="form-select" id="lacing_pattern" name="lacing_pattern" onchange="updateSpokeLengthRecommendations()">
+                            <option value="">Select pattern...</option>
+                            <option value="radial" {% if build and build.lacing_pattern == 'radial' %}selected{% endif %}>Radial</option>
+                            <option value="1-cross" {% if build and build.lacing_pattern == '1-cross' %}selected{% endif %}>1-cross</option>
+                            <option value="2-cross" {% if build and build.lacing_pattern == '2-cross' %}selected{% endif %}>2-cross</option>
+                            <option value="3-cross" {% if build and build.lacing_pattern == '3-cross' %}selected{% endif %}>3-cross</option>
+                            <option value="4-cross" {% if build and build.lacing_pattern == '4-cross' %}selected{% endif %}>4-cross</option>
                         </select>
                     </div>
                 </div>
@@ -49,6 +72,7 @@
                             <option value="{{ spoke.id }}" {% if build and build.spoke_left_id == spoke.id %}selected{% endif %}>{{ spoke.spoke_type.name }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
+                        <small id="spoke-left-recommendation" class="text-danger">Choose hub, rim, nipple and lacing pattern to get length recommendation</small>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="spoke_right_id" class="form-label">Spoke Right</label>
@@ -58,29 +82,7 @@
                             <option value="{{ spoke.id }}" {% if build and build.spoke_right_id == spoke.id %}selected{% endif %}>{{ spoke.spoke_type.name }} - {{ spoke.length }}mm</option>
                             {% endfor %}
                         </select>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="nipple_id" class="form-label">Nipple</label>
-                        <select class="form-select" id="nipple_id" name="nipple_id">
-                            <option value="">Select nipple...</option>
-                            {% for nipple in nipples %}
-                            <option value="{{ nipple.id }}" {% if build and build.nipple_id == nipple.id %}selected{% endif %}>{{ nipple.material }} {{ nipple.diameter }}mm {{ nipple.color }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="lacing_pattern" class="form-label">Lacing Pattern</label>
-                        <select class="form-select" id="lacing_pattern" name="lacing_pattern">
-                            <option value="">Select pattern...</option>
-                            <option value="radial" {% if build and build.lacing_pattern == 'radial' %}selected{% endif %}>Radial</option>
-                            <option value="1-cross" {% if build and build.lacing_pattern == '1-cross' %}selected{% endif %}>1-cross</option>
-                            <option value="2-cross" {% if build and build.lacing_pattern == '2-cross' %}selected{% endif %}>2-cross</option>
-                            <option value="3-cross" {% if build and build.lacing_pattern == '3-cross' %}selected{% endif %}>3-cross</option>
-                            <option value="4-cross" {% if build and build.lacing_pattern == '4-cross' %}selected{% endif %}>4-cross</option>
-                        </select>
+                        <small id="spoke-right-recommendation" class="text-danger">Choose hub, rim, nipple and lacing pattern to get length recommendation</small>
                     </div>
                 </div>
 
@@ -106,3 +108,54 @@
         </form>
     </div>
 </div>
+
+<script>
+// Calculate and display spoke length recommendations
+function updateSpokeLengthRecommendations() {
+    const hubId = document.getElementById('hub_id')?.value;
+    const rimId = document.getElementById('rim_id')?.value;
+    const nippleId = document.getElementById('nipple_id')?.value;
+    const lacingPattern = document.getElementById('lacing_pattern')?.value;
+
+    const leftRec = document.getElementById('spoke-left-recommendation');
+    const rightRec = document.getElementById('spoke-right-recommendation');
+
+    if (!leftRec || !rightRec) return;
+
+    // Check if all required fields are filled
+    if (!hubId || !rimId || !nippleId || !lacingPattern) {
+        leftRec.className = 'text-danger';
+        leftRec.textContent = 'Choose hub, rim, nipple and lacing pattern to get length recommendation';
+        rightRec.className = 'text-danger';
+        rightRec.textContent = 'Choose hub, rim, nipple and lacing pattern to get length recommendation';
+        return;
+    }
+
+    // Call API to calculate spoke lengths
+    fetch(`/api/calculate-spoke-length?hub_id=${hubId}&rim_id=${rimId}&nipple_id=${nippleId}&lacing_pattern=${lacingPattern}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                leftRec.className = 'text-danger';
+                leftRec.textContent = `Error: ${data.error}`;
+                rightRec.className = 'text-danger';
+                rightRec.textContent = `Error: ${data.error}`;
+            } else {
+                leftRec.className = 'text-success';
+                leftRec.textContent = `Recommended spoke length: ${parseFloat(data.left_length).toFixed(2)} mm`;
+                rightRec.className = 'text-success';
+                rightRec.textContent = `Recommended spoke length: ${parseFloat(data.right_length).toFixed(2)} mm`;
+            }
+        })
+        .catch(error => {
+            console.error('Error calculating spoke length:', error);
+            leftRec.className = 'text-danger';
+            leftRec.textContent = 'Error calculating spoke length';
+            rightRec.className = 'text-danger';
+            rightRec.textContent = 'Error calculating spoke length';
+        });
+}
+
+// Trigger calculation when modal is opened (for edit mode with existing values)
+updateSpokeLengthRecommendations();
+</script>

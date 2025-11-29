@@ -268,7 +268,7 @@
                         <h6 class="text-secondary mb-3"><i class="bi bi-arrow-left"></i> Left Side</h6>
                         <div class="mb-2">
                             <span class="text-muted">Calculated Length:</span>
-                            <span class="float-end fw-bold fs-5 text-primary">{{ "%.3f"|format(calculated_left) }}mm</span>
+                            <span class="float-end fw-bold fs-5 text-primary">{{ "%.2f"|format(calculated_left) }}mm</span>
                         </div>
                         {% if spoke_left %}
                         <div class="mb-2">
@@ -279,9 +279,9 @@
                         <div class="alert alert-warning alert-sm mb-0 mt-2">
                             <small><i class="bi bi-exclamation-triangle"></i>
                             {% if spoke_left.length > calculated_left %}
-                                Selected spoke is {{ "%.3f"|format(spoke_left.length - calculated_left) }}mm longer than recommended
+                                Selected spoke is {{ "%.2f"|format(spoke_left.length - calculated_left) }}mm longer than recommended
                             {% else %}
-                                Selected spoke is {{ "%.3f"|format(calculated_left - spoke_left.length) }}mm shorter than recommended
+                                Selected spoke is {{ "%.2f"|format(calculated_left - spoke_left.length) }}mm shorter than recommended
                             {% endif %}
                             </small>
                         </div>
@@ -298,7 +298,7 @@
                         <h6 class="text-secondary mb-3"><i class="bi bi-arrow-right"></i> Right Side</h6>
                         <div class="mb-2">
                             <span class="text-muted">Calculated Length:</span>
-                            <span class="float-end fw-bold fs-5 text-primary">{{ "%.3f"|format(calculated_right) }}mm</span>
+                            <span class="float-end fw-bold fs-5 text-primary">{{ "%.2f"|format(calculated_right) }}mm</span>
                         </div>
                         {% if spoke_right %}
                         <div class="mb-2">
@@ -309,9 +309,9 @@
                         <div class="alert alert-warning alert-sm mb-0 mt-2">
                             <small><i class="bi bi-exclamation-triangle"></i>
                             {% if spoke_right.length > calculated_right %}
-                                Selected spoke is {{ "%.3f"|format(spoke_right.length - calculated_right) }}mm longer than recommended
+                                Selected spoke is {{ "%.2f"|format(spoke_right.length - calculated_right) }}mm longer than recommended
                             {% else %}
-                                Selected spoke is {{ "%.3f"|format(calculated_right - spoke_right.length) }}mm shorter than recommended
+                                Selected spoke is {{ "%.2f"|format(calculated_right - spoke_right.length) }}mm shorter than recommended
                             {% endif %}
                             </small>
                         </div>

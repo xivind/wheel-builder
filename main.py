@@ -242,13 +242,13 @@ async def build_details(request: Request, build_id: str, session: str = None):
         if can_calc:
             # Calculate spoke lengths for both sides
             calculated_left = calculate_spoke_length(
-                hub, rim, spoke_left, nipple,
+                hub, rim, nipple,
                 build.spoke_count,
                 build.lacing_pattern,
                 "left"
             )
             calculated_right = calculate_spoke_length(
-                hub, rim, spoke_right, nipple,
+                hub, rim, nipple,
                 build.spoke_count,
                 build.lacing_pattern,
                 "right"
@@ -437,6 +437,46 @@ async def update_build_route(
             "request": request,
             "error_message": f"Error updating build: {str(e)}"
         }, status_code=500)
+
+@app.get("/api/calculate-spoke-length")
+async def calculate_spoke_length_api(
+    hub_id: str,
+    rim_id: str,
+    nipple_id: str,
+    lacing_pattern: str
+):
+    """Calculate recommended spoke lengths based on hub, rim, nipple, and lacing pattern.
+
+    Returns JSON with left and right spoke lengths and spoke count.
+    """
+    try:
+        # Get components
+        hub = get_hub_by_id(hub_id)
+        rim = get_rim_by_id(rim_id)
+        nipple = get_nipple_by_id(nipple_id)
+
+        if not hub or not rim or not nipple:
+            return {"error": "One or more components not found"}
+
+        # Spoke count is determined by rim holes
+        spoke_count = rim.holes
+
+        # Calculate lengths for both sides
+        left_length = calculate_spoke_length(
+            hub, rim, nipple, spoke_count, lacing_pattern, "left"
+        )
+        right_length = calculate_spoke_length(
+            hub, rim, nipple, spoke_count, lacing_pattern, "right"
+        )
+
+        return {
+            "left_length": left_length,
+            "right_length": right_length,
+            "spoke_count": spoke_count
+        }
+    except Exception as e:
+        logger.error(f"Error calculating spoke length: {e}")
+        return {"error": str(e)}
 
 @app.get("/partials/tension-session-form", response_class=HTMLResponse)
 async def tension_session_form_partial(request: Request, build_id: str):

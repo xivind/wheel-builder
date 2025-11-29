@@ -21,9 +21,6 @@ def can_calculate_spoke_length(wheel_build):
         missing.append("hub")
     if not wheel_build.rim_id:
         missing.append("rim")
-    # Need at least one spoke selected (left or right)
-    if not wheel_build.spoke_left_id and not wheel_build.spoke_right_id:
-        missing.append("spoke (left or right)")
     if not wheel_build.nipple_id:
         missing.append("nipple")
     if not wheel_build.lacing_pattern:
@@ -65,16 +62,14 @@ def check_component_locked(component_type, component_id):
         'builds': build_names
     }
 
-def calculate_spoke_length(hub, rim, spoke, nipple, spoke_count, lacing_pattern, side):
+def calculate_spoke_length(hub, rim, nipple, spoke_count, lacing_pattern, side):
     """Calculate recommended spoke length for one side of the wheel.
 
-    NOTE: This is a placeholder. User will provide actual formulas.
-    Based on standard spoke length formula from spokelengthcalculator.com
+    Based on Damon Rinard's formula from spokelengthcalculator.com
 
     Args:
         hub: Hub model instance
         rim: Rim model instance
-        spoke: Spoke model instance (for gauge if needed)
         nipple: Nipple model instance (for nipple length)
         spoke_count: Number of spokes (integer)
         lacing_pattern: String like "radial", "1-cross", "2-cross", "3-cross", "4-cross"
@@ -99,29 +94,31 @@ def calculate_spoke_length(hub, rim, spoke, nipple, spoke_count, lacing_pattern,
         crossing = int(lacing_pattern.split("-")[0])
 
     # Calculate spoke angle
-    # For radial: angle = 0
-    # For crossed: angle depends on crossing and spoke count
     spoke_angle = (2 * math.pi * crossing) / (spoke_count / 2)
 
-    # Standard spoke length formula
-    # L = sqrt(R^2 + H^2 - 2*R*H*cos(alpha)) - nipple_length
-    # Where:
-    # R = ERD/2 (rim radius)
-    # H = sqrt((flange_radius)^2 + (center_to_flange)^2)
-    # alpha = spoke angle
+    # Damon Rinard's spoke length formula:
+    # a = (DL/2 * sin(angle))^2
+    # b = (ERD/2 - DL/2 * cos(angle))^2
+    # c = ((OLD/2) - LFO + OSB)^2  (for left) or ((OLD/2) - RFO - OSB)^2 (for right)
+    # Spoke Length = sqrt(a + b + c) - spoke_hole_diameter/2
+    # Note: ERD already accounts for nipple depth, so we only subtract spoke hole depth
 
-    rim_radius = rim.erd / 2
-    flange_radius = flange_diameter / 2
+    # Component a: tangential (crossing) component
+    a = (flange_diameter / 2 * math.sin(spoke_angle)) ** 2
 
-    # Distance from wheel center to flange center
-    center_to_flange = abs((hub.old / 2) - flange_offset)
+    # Component b: radial component
+    b = (rim.erd / 2 - flange_diameter / 2 * math.cos(spoke_angle)) ** 2
 
-    # Hypotenuse from wheel center to spoke hole in flange
-    h_squared = (flange_radius ** 2) + (center_to_flange ** 2)
+    # Component c: axial (lateral offset) component
+    # For left side: add OSB, for right side: subtract OSB
+    if side == "left":
+        c = ((hub.old / 2) - flange_offset + rim.osb) ** 2
+    else:
+        c = ((hub.old / 2) - flange_offset - rim.osb) ** 2
 
     # Calculate spoke length
-    length_squared = (rim_radius ** 2) + h_squared - (2 * rim_radius * math.sqrt(h_squared) * math.cos(spoke_angle))
-    spoke_length = math.sqrt(length_squared) - nipple.length
+    # Subtract half the spoke hole diameter (spoke extends partway through flange)
+    spoke_length = math.sqrt(a + b + c) - (hub.spoke_hole_diameter / 2)
 
     logger.info(f"Calculated spoke length for {side} side: {spoke_length:.2f}mm")
 
@@ -143,24 +140,17 @@ def calculate_recommended_spoke_lengths(wheel_build):
 
     hub = get_hub_by_id(wheel_build.hub_id)
     rim = get_rim_by_id(wheel_build.rim_id)
-    spoke_left = get_spoke_by_id(wheel_build.spoke_left_id) if wheel_build.spoke_left_id else None
-    spoke_right = get_spoke_by_id(wheel_build.spoke_right_id) if wheel_build.spoke_right_id else None
     nipple = get_nipple_by_id(wheel_build.nipple_id)
 
-    # Use spoke_left for left calculation, or spoke_right as fallback
-    left_spoke = spoke_left or spoke_right
-    # Use spoke_right for right calculation, or spoke_left as fallback
-    right_spoke = spoke_right or spoke_left
-
     left_length = calculate_spoke_length(
-        hub, rim, left_spoke, nipple,
+        hub, rim, nipple,
         wheel_build.spoke_count,
         wheel_build.lacing_pattern,
         "left"
     )
 
     right_length = calculate_spoke_length(
-        hub, rim, right_spoke, nipple,
+        hub, rim, nipple,
         wheel_build.spoke_count,
         wheel_build.lacing_pattern,
         "right"
