@@ -2,7 +2,7 @@
 
 A self-hosted web application to help bicycle wheel builders select components, calculate spoke lengths, track tension measurements, and visualize build quality over time.
 
-![Gas Gauge Logo](static/gas_gauge.png)
+![Gas Gauge Logo](static/img/wheelbuilder.png)
 
 ## Features
 
@@ -143,39 +143,52 @@ The application follows a strict 3-layer architecture:
 
 ## Data Persistence
 
-- Database location: `~/code/container_data/wheel_builder.db`
-- Automatically created on first run
+- Database location: `~/code/container_data/wheel_builder.db` (both Docker and local development)
+- Automatically created on first run with directory creation
 - Survives container restarts and rebuilds
 - Seed data added automatically if database is new
+- Can be overridden with `DATABASE_PATH` environment variable
 
 ## Logging
 
-- Log file location: `/app/data/logs/app.log` (inside container) or `~/code/container_data/logs/app.log` (on host)
-- Logs to both console (stdout) and rotating log file
-- Rotating log file with 3 backups, rotates at 10000 bytes
-- Log format: `DD-Mon-YY HH:MM:SS - LEVEL - MESSAGE`
-- For local development: logs written to `data/logs/app.log`
+- Logs are written to **both stdout and file**
+- Log format: `YYYY-MM-DD HH:MM:SS - LEVEL - MESSAGE`
+- Includes uvicorn, access, and application logs
+- **File location**: `~/code/container_data/logs/wheel_builder.log` (persisted on host)
+- **Log rotation**: Application-level RotatingFileHandler (max 3 files × 10KB each)
 
 To view logs:
 ```bash
 # Docker logs (stdout)
 docker logs wheel-builder
+docker logs -f wheel-builder  # Follow in real-time
 
-# Application log file
-tail -f ~/code/container_data/logs/app.log
+# Log file (persisted)
+tail -f ~/code/container_data/logs/wheel_builder.log
+cat ~/code/container_data/logs/wheel_builder.log
+
+# Backup log files (rotated)
+ls -lh ~/code/container_data/logs/
 ```
+
+For local development, logs appear in both the console and `~/code/container_data/logs/wheel_builder.log`.
 
 ## Backup
 
-To backup your data:
+Use the provided backup script:
 ```bash
-cp ~/code/container_data/wheel_builder.db ~/backups/wheel_builder_$(date +%Y%m%d).db
+./backup_db.sh
+```
+
+Or manually backup your data:
+```bash
+cp ~/code/container_data/wheel_builder.db ~/backup/wheel_builder_$(date +%Y%m%d).db
 ```
 
 To restore from backup:
 ```bash
 docker stop wheel-builder
-cp ~/backups/wheel_builder_20250115.db ~/code/container_data/wheel_builder.db
+cp ~/backup/wheel_builder_20250115.db ~/code/container_data/wheel_builder.db
 docker start wheel-builder
 ```
 
@@ -188,17 +201,19 @@ docker start wheel-builder
 pip install -r requirements.txt
 ```
 
-2. Create data directory:
+2. Run the application:
 ```bash
-mkdir -p data/logs
+uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
 ```
 
-3. Run the application:
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8004 --reload --reload-exclude 'data/*' --log-config uvicorn_log_config_local.ini
-```
+The database will be automatically created at `~/code/container_data/wheel_builder.db` (same location as Docker).
 
-4. Access at `http://localhost:8004`
+3. Access at `http://localhost:8004`
+
+To use a different database location:
+```bash
+DATABASE_PATH=/path/to/custom.db uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
+```
 
 ### Project Structure
 

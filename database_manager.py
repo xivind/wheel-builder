@@ -3,7 +3,9 @@
 from datetime import datetime
 from database_model import Hub, Rim, Spoke, Nipple, WheelBuild, TensionSession, TensionReading
 from utils import generate_uuid
-from logger import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Hub operations
 

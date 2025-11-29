@@ -2,9 +2,11 @@ from database_manager import (
     get_hub_by_id, get_rim_by_id, get_spoke_by_id, get_nipple_by_id,
     get_builds_using_hub, get_builds_using_rim, get_builds_using_spoke, get_builds_using_nipple
 )
-from logger import logger
+import logging
 import math
 import statistics
+
+logger = logging.getLogger(__name__)
 
 def can_calculate_spoke_length(wheel_build):
     """Check if wheel build has all required data for spoke length calculation.

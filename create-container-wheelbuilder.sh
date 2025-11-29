@@ -10,8 +10,8 @@ docker image rm wheel-builder
 # Build image and tag it
 docker build -t wheel-builder .
 
-# Create data directory on host if it doesn't exist
-mkdir -p ~/code/container_data
+# Create data and logs directories on host if they don't exist
+mkdir -p ~/code/container_data/logs
 
 # Create and run container
 docker run -d \

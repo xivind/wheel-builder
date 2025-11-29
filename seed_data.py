@@ -3,7 +3,9 @@ from database_manager import (
     create_hub, create_rim, create_nipple,
     get_all_hubs, get_all_rims, get_all_spokes, get_all_nipples
 )
-from logger import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 def seed_components():
     """Populate database with sample components."""

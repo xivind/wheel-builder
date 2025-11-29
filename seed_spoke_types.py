@@ -1,8 +1,10 @@
 import json
 import re
 import uuid
+import logging
 from database_model import db, SpokeType, ConversionPoint
-from logger import logger
+
+logger = logging.getLogger(__name__)
 
 def parse_spoke_type_metadata(name):
     """Parse material, shape, and dimensions from spoke type name.

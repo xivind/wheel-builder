@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from database_model import initialize_database, db
 from seed_data import seed_components
-from logger import logger
+import logging
 from database_manager import (
     get_all_wheel_builds, get_hubs_by_ids, get_rims_by_ids,
     get_all_hubs, get_all_rims, get_all_spokes, get_all_nipples,
@@ -28,6 +28,8 @@ from business_logic import (
 )
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="Wheel Builder")
 
 # Mount static files
@@ -36,6 +38,22 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
+def health_check():
+    """Test database connectivity and write healthcheck status"""
+    try:
+        # Test database connectivity with a simple query
+        from database_model import Hub
+        Hub.select().limit(1).execute()
+        with open("status.txt", "w", encoding='utf-8') as file:
+            file.write("ok")
+        logger.info("Health check passed")
+        return True
+    except Exception as error:
+        logger.error(f"Health check failed: {error}")
+        with open("status.txt", "w", encoding='utf-8') as file:
+            file.write("error")
+        return False
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on startup."""
@@ -43,6 +61,7 @@ async def startup_event():
     initialize_database()
     db.connect()
     seed_components()
+    health_check()
     logger.info("Application ready")
 
 @app.on_event("shutdown")
@@ -1499,6 +1518,7 @@ async def delete_nipple_route(nipple_id: str):
         return RedirectResponse(url="/config#nipples", status_code=303)
 
 @app.get("/health")
-async def health_check():
+async def health_endpoint():
     """Health check endpoint."""
-    return {"status": "healthy"}
+    is_healthy = health_check()
+    return {"status": "healthy" if is_healthy else "unhealthy"}

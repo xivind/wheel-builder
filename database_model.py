@@ -2,7 +2,13 @@ from peewee import *
 import os
 
 # Database configuration
-DATABASE_PATH = os.getenv('DATABASE_PATH', '/app/data/wheel_builder.db')
+# Default to ~/code/container_data/wheel_builder.db (shared with Docker)
+DEFAULT_DB_PATH = os.path.expanduser('~/code/container_data/wheel_builder.db')
+DATABASE_PATH = os.getenv('DATABASE_PATH', DEFAULT_DB_PATH)
+
+# Ensure directory exists
+os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
+
 db = SqliteDatabase(DATABASE_PATH)
 
 class BaseModel(Model):
