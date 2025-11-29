@@ -7,6 +7,17 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Navbar adjustments for larger logo */
+.navbar {
+    padding-top: 0.50rem;
+    padding-bottom: 0.50rem;
+}
+
+.navbar-brand img {
+    height: 40px;
+    width: auto;
+}
+
 h1,
 h2,
 h3,
@@ -67,6 +78,15 @@ h6 {
 
 .card-body {
     padding: 1.5rem;
+}
+
+/* Modal Headers */
+.modal-header {
+    color: #f8f9fa !important;
+}
+
+.modal-header .modal-title {
+    color: #f8f9fa !important;
 }
 
 /* Buttons */

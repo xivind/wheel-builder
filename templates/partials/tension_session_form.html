@@ -7,14 +7,14 @@
         <form method="POST" action="/build/{{ build_id }}/session/create">
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="session_name" class="form-label">Session Name *</label>
+                    <label for="session_name" class="form-label">Session Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="session_name" name="session_name" required
                            placeholder="e.g., Initial Build, After Truing, After 50km">
                     <small class="form-text text-muted">Give this session a descriptive name to identify when these measurements were taken.</small>
                 </div>
 
                 <div class="mb-3">
-                    <label for="session_date" class="form-label">Session Date *</label>
+                    <label for="session_date" class="form-label">Session Date <span class="text-danger">*</span></label>
                     <input type="date" class="form-control" id="session_date" name="session_date"
                            value="{{ today_date }}" required>
                     <small class="form-text text-muted">Date when these tension measurements were taken.</small>

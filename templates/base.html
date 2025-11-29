@@ -31,18 +31,24 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-dark mb-4" style="background-color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-gear-fill"></i> Wheel Builder
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/static/img/wheelbuilder.png" alt="Wheel Builder" height="80">
+                Wheel Builder
             </a>
-            <div>
-                <a href="/" class="btn btn-outline-light btn-sm me-2">
-                    <i class="bi bi-house-fill"></i> Dashboard
-                </a>
-                <a href="/config" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-tools"></i> Configuration
-                </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="bi bi-house-fill me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/config"><i class="bi bi-tools me-1"></i> Configuration</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
