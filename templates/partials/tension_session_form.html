@@ -1,14 +1,19 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+            {% if session %}
+            <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Tension Session</h5>
+            {% else %}
             <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Create Tension Session</h5>
+            {% endif %}
             <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);" aria-label="Close"></button>
         </div>
-        <form method="POST" action="/build/{{ build_id }}/session/create">
+        <form method="POST" action="{% if session %}/build/{{ build_id }}/session/{{ session.id }}/edit{% else %}/build/{{ build_id }}/session/create{% endif %}">
             <div class="modal-body">
                 <div class="mb-3">
                     <label for="session_name" class="form-label">Session Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="session_name" name="session_name" required
+                           value="{% if session %}{{ session.session_name }}{% endif %}"
                            placeholder="e.g., Initial Build, After Truing, After 50km">
                     <small class="form-text text-muted">Give this session a descriptive name to identify when these measurements were taken.</small>
                 </div>
@@ -16,26 +21,38 @@
                 <div class="mb-3">
                     <label for="session_date" class="form-label">Session Date <span class="text-danger">*</span></label>
                     <input type="date" class="form-control" id="session_date" name="session_date"
-                           value="{{ today_date }}" required>
+                           value="{% if session %}{{ session.session_date.strftime('%Y-%m-%d') }}{% else %}{{ today_date }}{% endif %}" required>
                     <small class="form-text text-muted">Date when these tension measurements were taken.</small>
                 </div>
 
                 <div class="mb-3">
                     <label for="notes" class="form-label">Notes</label>
                     <textarea class="form-control" id="notes" name="notes" rows="4"
-                              placeholder="Optional notes about this session (e.g., conditions, observations, adjustments made)"></textarea>
+                              placeholder="Optional notes about this session (e.g., conditions, observations, adjustments made)">{% if session and session.notes %}{{ session.notes }}{% endif %}</textarea>
                     <small class="form-text text-muted">Record any relevant observations or context about this tension session.</small>
                 </div>
 
+                {% if session %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i> Editing this session will only update the name, date, and notes. Tension readings will not be modified.
+                </div>
+                {% else %}
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> After creating this session, you'll be able to add tension readings for individual spokes.
                 </div>
+                {% endif %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                {% if session %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Update Session
+                </button>
+                {% else %}
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-lg"></i> Create Session
                 </button>
+                {% endif %}
             </div>
         </form>
     </div>

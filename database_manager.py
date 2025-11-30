@@ -364,6 +364,20 @@ def get_tension_session_by_id(session_id):
     except TensionSession.DoesNotExist:
         return None
 
+def update_tension_session(session_id, session_name, session_date, notes=None):
+    """Update tension session metadata. Does NOT modify tension readings."""
+    try:
+        session = TensionSession.get_by_id(session_id)
+        session.session_name = session_name
+        session.session_date = session_date
+        session.notes = notes
+        session.save()
+        logger.info(f"Updated tension session: {session_name} (ID: {session_id})")
+        return session
+    except TensionSession.DoesNotExist:
+        logger.warning(f"Cannot update session {session_id}: does not exist")
+        return None
+
 def delete_tension_session(session_id):
     """Delete a tension session and all its associated readings."""
     try:

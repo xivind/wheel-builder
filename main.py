@@ -498,8 +498,8 @@ async def calculate_spoke_length_api(
         return {"error": str(e)}
 
 @app.get("/partials/tension-session-form", response_class=HTMLResponse)
-async def tension_session_form_partial(request: Request, build_id: str):
-    """Return tension session form modal partial for HTMX."""
+async def tension_session_form_partial(request: Request, build_id: str, session_id: str = None):
+    """Return tension session form modal partial for HTMX. Supports create and edit modes."""
     try:
         # Verify the build exists
         build = get_wheel_build_by_id(build_id)
@@ -509,10 +509,18 @@ async def tension_session_form_partial(request: Request, build_id: str):
         # Get today's date in YYYY-MM-DD format
         today_date = datetime.now().strftime('%Y-%m-%d')
 
+        # If session_id is provided, we're in edit mode
+        session = None
+        if session_id:
+            session = get_tension_session_by_id(session_id)
+            if not session:
+                return HTMLResponse("<div class='alert alert-danger'>Session not found.</div>", status_code=404)
+
         return templates.TemplateResponse("partials/tension_session_form.html", {
             "request": request,
             "build_id": build_id,
-            "today_date": today_date
+            "today_date": today_date,
+            "session": session  # Will be None for create mode, populated for edit mode
         })
     except Exception as e:
         logger.error(f"Error loading tension session form: {e}")
@@ -566,6 +574,67 @@ async def create_session_route(
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error_message": "Unable to create tension session. Please try again later."
+        }, status_code=500)
+
+@app.post("/build/{build_id}/session/{session_id}/edit")
+async def update_session_route(
+    request: Request,
+    build_id: str,
+    session_id: str
+):
+    """Update tension session metadata (name, date, notes). Does NOT modify tension readings."""
+    try:
+        from database_manager import update_tension_session
+
+        # Get form data
+        form_data = await request.form()
+        session_name = form_data.get('session_name', '').strip()
+        session_date = form_data.get('session_date', '').strip()
+        notes = form_data.get('notes', '').strip()
+
+        # Validate required fields
+        if not session_name or not session_date:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Session name and date are required."
+            }, status_code=400)
+
+        # Parse date
+        try:
+            session_date_obj = datetime.strptime(session_date, '%Y-%m-%d')
+        except ValueError:
+            logger.error(f"Invalid date format: {session_date}")
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Invalid date format."
+            }, status_code=400)
+
+        # Convert empty notes to None
+        notes = notes if notes else None
+
+        # Update the tension session
+        session = update_tension_session(
+            session_id=session_id,
+            session_name=session_name,
+            session_date=session_date_obj,
+            notes=notes
+        )
+
+        if not session:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error_message": "Session not found."
+            }, status_code=404)
+
+        logger.info(f"Updated tension session: {session_name} (ID: {session_id})")
+
+        # Redirect to build details with the session selected, maintaining scroll position
+        return RedirectResponse(url=f"/build/{build_id}?session={session_id}#tension-tracking", status_code=303)
+    except Exception as e:
+        logger.error(f"Error updating tension session: {e}")
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_message": "Unable to update tension session. Please try again later."
         }, status_code=500)
 
 @app.post("/build/{build_id}/session/{session_id}/delete")
