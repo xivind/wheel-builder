@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from database_model import initialize_database, db
-from seed_data import seed_components
+from seed_sample_components import seed_components
 import logging
 from database_manager import (
     get_all_wheel_builds, get_hubs_by_ids, get_rims_by_ids,

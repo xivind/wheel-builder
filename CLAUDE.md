@@ -105,7 +105,7 @@ This codebase follows a strict three-layer architecture. **Do not violate these 
 - **database_model.py** - Peewee ORM models (7 tables)
 - **utils.py** - Helper functions (UUID generation)
 - **logger.py** - Standard logging using Python's logging module
-- **seed_data.py** - Seeds sample components on first run
+- **seed_sample_components.py** - Seeds sample components on first run
 - **seed_spoke_types.py** - Loads Park Tool TM-1 conversion table from conversion_table.txt
 
 ### Database Models
@@ -247,7 +247,7 @@ Comprehensive spoke type definitions with tension meter calibration:
 ### Initialization
 
 - Tables created automatically on first run via `initialize_database()`
-- Seed data populated by `seed_components()` in main.py startup
+- Sample components populated by `seed_components()` in main.py startup
 - Spoke types and conversion table loaded by `seed_spoke_types.py`
 
 ### Backup

@@ -233,7 +233,7 @@ wheel-builder/
 ├── database_model.py            # ORM models
 ├── utils.py                     # Helper functions
 ├── logger.py                    # Logging config
-├── seed_data.py                 # Sample data population
+├── seed_sample_components.py    # Sample data population
 ├── requirements.txt             # Python dependencies
 ├── Dockerfile                   # Docker image definition
 ├── create-container-wheelbuilder.sh  # Deployment script

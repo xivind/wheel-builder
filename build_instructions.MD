@@ -25,7 +25,7 @@ In order for the program to work it need a lot of rather complex formulas and in
 - database_manager.py contains all methods necessary to do CRUD operations in the database
 - database_model.py contains the model for the sqlite database
 - logger.py contains the logging configuration. All logging, both from fastapi and python, should be done in a uniform manner and logged to the docker container. See the Dockerfile for inspiration
-- seed_data.py is used to populate the database with configuration data for wheel materials on container creation
+- seed_sample_components.py is used to populate the database with sample component data on container creation
 - utils.py contains helper methods, such as method to create UUIDs and other stuff that has the characteristics of being helper method
 
 ## Database configuration
