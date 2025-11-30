@@ -285,21 +285,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
             if selected_session:
                 readings = get_readings_by_session(selected_session.id)
 
-                # Organize readings by side and spoke number
-                for reading in readings:
-                    reading_data = {
-                        'tm_reading': reading.tm_reading,
-                        'kgf': reading.estimated_tension_kgf,
-                        'range_status': reading.range_status,
-                        'avg_deviation_status': reading.average_deviation_status
-                    }
-
-                    if reading.side == 'left':
-                        readings_left[reading.spoke_number] = reading_data
-                    else:
-                        readings_right[reading.spoke_number] = reading_data
-
-                # Calculate statistics and quality status if we have readings
+                # Calculate statistics first (we need averages for deviation percentages)
                 if readings and spoke_for_tension and rim:
                     tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
                     analysis = analyze_tension_readings(readings, tension_range)
@@ -308,6 +294,28 @@ async def build_details(request: Request, build_id: str, session: str = None):
                     stats_right = analysis['right']
 
                     quality_status = determine_quality_status(analysis, tension_range)
+
+                # Organize readings by side and spoke number, adding deviation percentage
+                for reading in readings:
+                    # Calculate deviation percentage from side average
+                    deviation_pct = 0
+                    if reading.estimated_tension_kgf is not None and stats_left and stats_right:
+                        avg = stats_left['average'] if reading.side == 'left' else stats_right['average']
+                        if avg > 0:
+                            deviation_pct = abs((reading.estimated_tension_kgf - avg) / avg * 100)
+
+                    reading_data = {
+                        'tm_reading': reading.tm_reading,
+                        'kgf': reading.estimated_tension_kgf,
+                        'range_status': reading.range_status,
+                        'avg_deviation_status': reading.average_deviation_status,
+                        'deviation_pct': round(deviation_pct, 1)
+                    }
+
+                    if reading.side == 'left':
+                        readings_left[reading.spoke_number] = reading_data
+                    else:
+                        readings_right[reading.spoke_number] = reading_data
 
         return templates.TemplateResponse("build_details.html", {
             "request": request,
@@ -897,15 +905,30 @@ async def auto_save_tension_reading(
         stats_right = analysis['right']
         quality_status = determine_quality_status(analysis, tension_range)
 
-        # Organize readings by side for template
+        # Calculate deviation percentage for the current reading
+        current_deviation_pct = 0
+        if estimated_tension_kgf is not None:
+            avg = stats_left['average'] if side == 'left' else stats_right['average']
+            if avg > 0:
+                current_deviation_pct = abs((estimated_tension_kgf - avg) / avg * 100)
+
+        # Organize readings by side for template, adding deviation percentages
         readings_left = {}
         readings_right = {}
         for reading in readings:
+            # Calculate deviation percentage from side average
+            deviation_pct = 0
+            if reading.estimated_tension_kgf is not None:
+                avg = stats_left['average'] if reading.side == 'left' else stats_right['average']
+                if avg > 0:
+                    deviation_pct = abs((reading.estimated_tension_kgf - avg) / avg * 100)
+
             reading_data = {
                 'tm_reading': reading.tm_reading,
                 'kgf': reading.estimated_tension_kgf,
                 'range_status': reading.range_status,
-                'avg_deviation_status': reading.average_deviation_status
+                'avg_deviation_status': reading.average_deviation_status,
+                'deviation_pct': round(deviation_pct, 1)
             }
             if reading.side == 'left':
                 readings_left[reading.spoke_number] = reading_data
@@ -920,6 +943,7 @@ async def auto_save_tension_reading(
             "kgf": estimated_tension_kgf,
             "range_status": range_status,
             "avg_deviation_status": avg_deviation_status,
+            "deviation_pct": round(current_deviation_pct, 1),
             "stats_left": stats_left,
             "stats_right": stats_right,
             "quality_status": quality_status,

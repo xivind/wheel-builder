@@ -1,10 +1,12 @@
 <div id="oob-response"></div>
 
 <span id="kgf-{{side}}-{{spoke_num}}" hx-swap-oob="true">
-    {% if kgf is none %}
-    -
-    {% else %}
+    {% if kgf is not none %}
     {{ "%.1f"|format(kgf) }}
+    {% elif range_status == 'below_table' or range_status == 'above_table' %}
+    <span class="text-warning" title="TM-1 reading outside conversion table range">⚠</span>
+    {% else %}
+    -
     {% endif %}
 </span>
 
@@ -23,14 +25,18 @@
 </span>
 
 <span id="avg-status-{{side}}-{{spoke_num}}" hx-swap-oob="true">
-    {% if avg_deviation_status == 'unknown' %}
-    <span class="badge bg-secondary">Unknown</span>
-    {% elif avg_deviation_status == 'in_range' %}
-    <span class="badge bg-success">In Range</span>
-    {% elif avg_deviation_status == 'over' %}
-    <span class="badge bg-danger">Over</span>
-    {% elif avg_deviation_status == 'under' %}
-    <span class="badge bg-warning">Under</span>
+    {% if deviation_pct is not none %}
+        {% if deviation_pct < 5 %}
+        <span class="badge bg-success">< 5%</span>
+        {% elif deviation_pct < 10 %}
+        <span class="badge bg-success bg-opacity-50 text-dark">5-10%</span>
+        {% elif deviation_pct < 20 %}
+        <span class="badge bg-warning text-dark">10-20%</span>
+        {% else %}
+        <span class="badge bg-danger">> 20%</span>
+        {% endif %}
+    {% else %}
+    -
     {% endif %}
 </span>
 
@@ -38,21 +44,41 @@
 <div class="mt-3 p-2 bg-white rounded border" id="stats-left-panel" hx-swap-oob="true">
     <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
     <div class="row g-2">
-        <div class="col-6">
+        <div class="col-4">
             <small class="text-muted">Average:</small>
             <div class="fw-bold">{{ "%.1f"|format(stats_left.average) }} kgf</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <small class="text-muted">Std Dev:</small>
-            <div class="fw-bold">{{ "%.1f"|format(stats_left.std_dev) }}</div>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.std_dev) }} kgf</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
+            <small class="text-muted">Std Dev %:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.std_dev_pct) }}%</div>
+        </div>
+        <div class="col-4">
             <small class="text-muted">Min:</small>
             <div class="fw-bold">{{ "%.1f"|format(stats_left.min) }} kgf</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <small class="text-muted">Max:</small>
             <div class="fw-bold">{{ "%.1f"|format(stats_left.max) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">Range:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.range) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">±5%:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.range_5pct_lower) }}-{{ "%.1f"|format(stats_left.range_5pct_upper) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">±10%:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.range_10pct_lower) }}-{{ "%.1f"|format(stats_left.range_10pct_upper) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">±20%:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_left.range_20pct_lower) }}-{{ "%.1f"|format(stats_left.range_20pct_upper) }} kgf</div>
         </div>
     </div>
 </div>
@@ -62,21 +88,41 @@
 <div class="mt-3 p-2 bg-white rounded border" id="stats-right-panel" hx-swap-oob="true">
     <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
     <div class="row g-2">
-        <div class="col-6">
+        <div class="col-4">
             <small class="text-muted">Average:</small>
             <div class="fw-bold">{{ "%.1f"|format(stats_right.average) }} kgf</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <small class="text-muted">Std Dev:</small>
-            <div class="fw-bold">{{ "%.1f"|format(stats_right.std_dev) }}</div>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.std_dev) }} kgf</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
+            <small class="text-muted">Std Dev %:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.std_dev_pct) }}%</div>
+        </div>
+        <div class="col-4">
             <small class="text-muted">Min:</small>
             <div class="fw-bold">{{ "%.1f"|format(stats_right.min) }} kgf</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <small class="text-muted">Max:</small>
             <div class="fw-bold">{{ "%.1f"|format(stats_right.max) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">Range:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.range) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">±5%:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.range_5pct_lower) }}-{{ "%.1f"|format(stats_right.range_5pct_upper) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">±10%:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.range_10pct_lower) }}-{{ "%.1f"|format(stats_right.range_10pct_upper) }} kgf</div>
+        </div>
+        <div class="col-4">
+            <small class="text-muted">±20%:</small>
+            <div class="fw-bold">{{ "%.1f"|format(stats_right.range_20pct_lower) }}-{{ "%.1f"|format(stats_right.range_20pct_upper) }} kgf</div>
         </div>
     </div>
 </div>
@@ -97,6 +143,46 @@
     {% endif %}
 </div>
 {% endif %}
+
+<!-- Update ALL left side deviation badges (average changed, so all percentages need updating) -->
+{% for spoke_num, reading in readings_left.items() %}
+<span id="avg-status-left-{{ spoke_num }}" hx-swap-oob="true">
+    {% if reading.deviation_pct is not none %}
+        {% set pct = reading.deviation_pct %}
+        {% if pct < 5 %}
+        <span class="badge bg-success">< 5%</span>
+        {% elif pct < 10 %}
+        <span class="badge bg-success bg-opacity-50 text-dark">5-10%</span>
+        {% elif pct < 20 %}
+        <span class="badge bg-warning text-dark">10-20%</span>
+        {% else %}
+        <span class="badge bg-danger">> 20%</span>
+        {% endif %}
+    {% else %}
+    -
+    {% endif %}
+</span>
+{% endfor %}
+
+<!-- Update ALL right side deviation badges (average changed, so all percentages need updating) -->
+{% for spoke_num, reading in readings_right.items() %}
+<span id="avg-status-right-{{ spoke_num }}" hx-swap-oob="true">
+    {% if reading.deviation_pct is not none %}
+        {% set pct = reading.deviation_pct %}
+        {% if pct < 5 %}
+        <span class="badge bg-success">< 5%</span>
+        {% elif pct < 10 %}
+        <span class="badge bg-success bg-opacity-50 text-dark">5-10%</span>
+        {% elif pct < 20 %}
+        <span class="badge bg-warning text-dark">10-20%</span>
+        {% else %}
+        <span class="badge bg-danger">> 20%</span>
+        {% endif %}
+    {% else %}
+    -
+    {% endif %}
+</span>
+{% endfor %}
 
 <div id="chart-data-trigger"
      hx-swap-oob="true"

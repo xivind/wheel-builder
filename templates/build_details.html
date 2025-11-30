@@ -477,7 +477,7 @@
                                         <th>TM-1</th>
                                         <th>kgf</th>
                                         <th>Tension Range</th>
-                                        <th>20% Deviation Range</th>
+                                        <th>Deviation Range %</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -499,6 +499,8 @@
                                             <span id="kgf-left-{{ i }}">
                                             {% if readings_left.get(i, {}).get('kgf') %}
                                                 {{ "%.1f"|format(readings_left[i]['kgf']) }}
+                                            {% elif readings_left.get(i, {}).get('tm_reading') %}
+                                                <span class="text-warning" title="TM-1 reading outside conversion table range">⚠</span>
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -517,10 +519,17 @@
                                         </td>
                                         <td class="align-middle">
                                             <span id="avg-status-left-{{ i }}">
-                                            {% if readings_left.get(i, {}).get('avg_deviation_status') %}
-                                                <span class="badge bg-{% if readings_left[i].avg_deviation_status == 'in_range' %}success{% else %}danger{% endif %}">
-                                                    {{ readings_left[i].avg_deviation_status|replace('_', ' ')|title }}
-                                                </span>
+                                            {% if readings_left.get(i, {}).get('deviation_pct') is not none %}
+                                                {% set pct = readings_left[i].deviation_pct %}
+                                                {% if pct < 5 %}
+                                                <span class="badge bg-success">< 5%</span>
+                                                {% elif pct < 10 %}
+                                                <span class="badge bg-success bg-opacity-50 text-dark">5-10%</span>
+                                                {% elif pct < 20 %}
+                                                <span class="badge bg-warning text-dark">10-20%</span>
+                                                {% else %}
+                                                <span class="badge bg-danger">> 20%</span>
+                                                {% endif %}
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -535,21 +544,41 @@
                         <div class="mt-3 p-2 bg-white rounded border" id="stats-left-panel">
                             <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
                             <div class="row g-2">
-                                <div class="col-6">
+                                <div class="col-4">
                                     <small class="text-muted">Average:</small>
                                     <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.average) }} kgf{% else %}-{% endif %}</div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <small class="text-muted">Std Dev:</small>
                                     <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.std_dev) }} kgf{% else %}-{% endif %}</div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
+                                    <small class="text-muted">Std Dev %:</small>
+                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.std_dev_pct) }}%{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
                                     <small class="text-muted">Min:</small>
                                     <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.min) }} kgf{% else %}-{% endif %}</div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <small class="text-muted">Max:</small>
                                     <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.max) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Range:</small>
+                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.range) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">±5%:</small>
+                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.range_5pct_lower) }}-{{ "%.1f"|format(stats_left.range_5pct_upper) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">±10%:</small>
+                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.range_10pct_lower) }}-{{ "%.1f"|format(stats_left.range_10pct_upper) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">±20%:</small>
+                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.range_20pct_lower) }}-{{ "%.1f"|format(stats_left.range_20pct_upper) }} kgf{% else %}-{% endif %}</div>
                                 </div>
                             </div>
                         </div>
@@ -566,7 +595,7 @@
                                         <th>TM-1</th>
                                         <th>kgf</th>
                                         <th>Tension Range</th>
-                                        <th>20% Deviation Range</th>
+                                        <th>Deviation Range %</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -588,6 +617,8 @@
                                             <span id="kgf-right-{{ i }}">
                                             {% if readings_right.get(i, {}).get('kgf') %}
                                                 {{ "%.1f"|format(readings_right[i]['kgf']) }}
+                                            {% elif readings_right.get(i, {}).get('tm_reading') %}
+                                                <span class="text-warning" title="TM-1 reading outside conversion table range">⚠</span>
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -606,10 +637,17 @@
                                         </td>
                                         <td class="align-middle">
                                             <span id="avg-status-right-{{ i }}">
-                                            {% if readings_right.get(i, {}).get('avg_deviation_status') %}
-                                                <span class="badge bg-{% if readings_right[i].avg_deviation_status == 'in_range' %}success{% else %}danger{% endif %}">
-                                                    {{ readings_right[i].avg_deviation_status|replace('_', ' ')|title }}
-                                                </span>
+                                            {% if readings_right.get(i, {}).get('deviation_pct') is not none %}
+                                                {% set pct = readings_right[i].deviation_pct %}
+                                                {% if pct < 5 %}
+                                                <span class="badge bg-success">< 5%</span>
+                                                {% elif pct < 10 %}
+                                                <span class="badge bg-success bg-opacity-50 text-dark">5-10%</span>
+                                                {% elif pct < 20 %}
+                                                <span class="badge bg-warning text-dark">10-20%</span>
+                                                {% else %}
+                                                <span class="badge bg-danger">> 20%</span>
+                                                {% endif %}
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -624,24 +662,53 @@
                         <div class="mt-3 p-2 bg-white rounded border" id="stats-right-panel">
                             <h6 class="text-muted mb-2"><i class="bi bi-bar-chart"></i> Statistics</h6>
                             <div class="row g-2">
-                                <div class="col-6">
+                                <div class="col-4">
                                     <small class="text-muted">Average:</small>
                                     <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.average) }} kgf{% else %}-{% endif %}</div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <small class="text-muted">Std Dev:</small>
                                     <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.std_dev) }} kgf{% else %}-{% endif %}</div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
+                                    <small class="text-muted">Std Dev %:</small>
+                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.std_dev_pct) }}%{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
                                     <small class="text-muted">Min:</small>
                                     <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.min) }} kgf{% else %}-{% endif %}</div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <small class="text-muted">Max:</small>
                                     <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.max) }} kgf{% else %}-{% endif %}</div>
                                 </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Range:</small>
+                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.range) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">±5%:</small>
+                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.range_5pct_lower) }}-{{ "%.1f"|format(stats_right.range_5pct_upper) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">±10%:</small>
+                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.range_10pct_lower) }}-{{ "%.1f"|format(stats_right.range_10pct_upper) }} kgf{% else %}-{% endif %}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">±20%:</small>
+                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.range_20pct_lower) }}-{{ "%.1f"|format(stats_right.range_20pct_upper) }} kgf{% else %}-{% endif %}</div>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <span class="text-warning">⚠</span> TM-1 reading outside conversion table range
+                        </small>
                     </div>
                 </div>
 

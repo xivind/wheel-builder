@@ -205,8 +205,20 @@ def analyze_tension_readings(readings, tension_range):
         dict: Analysis results by side
     """
     results = {
-        'left': {'readings': [], 'average': 0, 'std_dev': 0, 'min': 0, 'max': 0},
-        'right': {'readings': [], 'average': 0, 'std_dev': 0, 'min': 0, 'max': 0}
+        'left': {
+            'readings': [], 'average': 0, 'std_dev': 0, 'std_dev_pct': 0,
+            'min': 0, 'max': 0, 'range': 0,
+            'range_5pct_lower': 0, 'range_5pct_upper': 0,
+            'range_10pct_lower': 0, 'range_10pct_upper': 0,
+            'range_20pct_lower': 0, 'range_20pct_upper': 0
+        },
+        'right': {
+            'readings': [], 'average': 0, 'std_dev': 0, 'std_dev_pct': 0,
+            'min': 0, 'max': 0, 'range': 0,
+            'range_5pct_lower': 0, 'range_5pct_upper': 0,
+            'range_10pct_lower': 0, 'range_10pct_upper': 0,
+            'range_20pct_lower': 0, 'range_20pct_upper': 0
+        }
     }
 
     # Separate readings by side
@@ -229,8 +241,16 @@ def analyze_tension_readings(readings, tension_range):
                 'readings': side_readings,
                 'average': 0,
                 'std_dev': 0,
+                'std_dev_pct': 0,
                 'min': 0,
                 'max': 0,
+                'range': 0,
+                'range_5pct_lower': 0,
+                'range_5pct_upper': 0,
+                'range_10pct_lower': 0,
+                'range_10pct_upper': 0,
+                'range_20pct_lower': 0,
+                'range_20pct_upper': 0,
                 'upper_limit_20pct': 0,
                 'lower_limit_20pct': 0
             }
@@ -242,25 +262,49 @@ def analyze_tension_readings(readings, tension_range):
         std_dev = statistics.stdev(tensions) if len(tensions) > 1 else 0
         min_tension = min(tensions)
         max_tension = max(tensions)
+        tension_range_kgf = max_tension - min_tension
 
-        # Calculate ±20% limits
-        upper_limit = avg * 1.2
-        lower_limit = avg * 0.8
+        # Calculate std dev as percentage of average
+        std_dev_pct = (std_dev / avg * 100) if avg > 0 else 0
+
+        # Calculate reference ranges (±5%, ±10%, ±20%)
+        range_5pct_lower = avg * 0.95
+        range_5pct_upper = avg * 1.05
+        range_10pct_lower = avg * 0.90
+        range_10pct_upper = avg * 1.10
+        range_20pct_lower = avg * 0.80
+        range_20pct_upper = avg * 1.20
 
         results[side] = {
             'readings': side_readings,  # Include all readings for display
             'average': round(avg, 2),
             'std_dev': round(std_dev, 2),
+            'std_dev_pct': round(std_dev_pct, 1),
             'min': round(min_tension, 2),
             'max': round(max_tension, 2),
-            'upper_limit_20pct': round(upper_limit, 2),
-            'lower_limit_20pct': round(lower_limit, 2)
+            'range': round(tension_range_kgf, 2),
+            # Reference ranges for display
+            'range_5pct_lower': round(range_5pct_lower, 1),
+            'range_5pct_upper': round(range_5pct_upper, 1),
+            'range_10pct_lower': round(range_10pct_lower, 1),
+            'range_10pct_upper': round(range_10pct_upper, 1),
+            'range_20pct_lower': round(range_20pct_lower, 1),
+            'range_20pct_upper': round(range_20pct_upper, 1),
+            # Legacy fields (keep for backward compatibility)
+            'upper_limit_20pct': round(range_20pct_upper, 2),
+            'lower_limit_20pct': round(range_20pct_lower, 2)
         }
 
     return results
 
 def determine_quality_status(analysis_results, tension_range):
-    """Determine overall quality status of wheel.
+    """Determine overall quality status of wheel using percentage-based thresholds.
+
+    Quality levels based on industry standards:
+    - < 5%: Excellent (competition/high-quality)
+    - 5-10%: Good (acceptable for most builds)
+    - 10-20%: Needs attention (requires truing)
+    - > 20%: Poor (significant issues)
 
     Args:
         analysis_results: Dict from analyze_tension_readings
@@ -276,27 +320,43 @@ def determine_quality_status(analysis_results, tension_range):
 
     for side in ['left', 'right']:
         readings = analysis_results[side]['readings']
+        avg = analysis_results[side]['average']
 
-        # Check if any readings outside recommended range
+        # Check if any readings outside recommended range (absolute limits)
         out_of_range = [r for r in readings if r.range_status != 'in_range']
         if out_of_range:
             issues.append(f"{len(out_of_range)} spokes on {side} side outside recommended tension range")
 
-        # Check if any readings outside ±20%
-        out_of_tolerance = [r for r in readings if r.average_deviation_status != 'in_range']
-        if out_of_tolerance:
-            issues.append(f"{len(out_of_tolerance)} spokes on {side} side outside ±20% tolerance")
+        # Check standard deviation percentage (primary quality indicator)
+        std_dev_pct = analysis_results[side]['std_dev_pct']
+        if std_dev_pct > 10:
+            issues.append(f"High tension variance on {side} side ({std_dev_pct:.1f}% std dev)")
+        elif std_dev_pct > 5:
+            issues.append(f"Moderate tension variance on {side} side ({std_dev_pct:.1f}% std dev)")
 
-        # Check standard deviation
-        if analysis_results[side]['std_dev'] > 10:
-            issues.append(f"High tension variance on {side} side (σ={analysis_results[side]['std_dev']:.1f})")
+        # Count spokes outside percentage thresholds
+        if avg > 0:
+            outside_20pct = [r for r in readings
+                            if r.estimated_tension_kgf is not None
+                            and abs((r.estimated_tension_kgf - avg) / avg * 100) > 20]
+            outside_10pct = [r for r in readings
+                            if r.estimated_tension_kgf is not None
+                            and abs((r.estimated_tension_kgf - avg) / avg * 100) > 10]
 
+            if outside_20pct:
+                issues.append(f"{len(outside_20pct)} spokes on {side} side > 20% from average")
+            elif outside_10pct:
+                issues.append(f"{len(outside_10pct)} spokes on {side} side > 10% from average")
+
+    # Determine overall status
     if not issues:
         status = 'well_balanced'
-    elif any('outside ±20%' in issue for issue in issues):
+    elif any('> 20%' in issue or 'High tension variance' in issue for issue in issues):
+        status = 'uneven_tension'
+    elif any('> 10%' in issue or 'Moderate tension variance' in issue for issue in issues):
         status = 'needs_truing'
     else:
-        status = 'uneven_tension'
+        status = 'well_balanced'
 
     return {
         'status': status,

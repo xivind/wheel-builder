@@ -45,13 +45,13 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
         datasets.push({
             label: 'Right Side',
             data: rightReadings,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
             borderWidth: 2,
-            pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+            pointBackgroundColor: 'rgba(153, 102, 255, 1)',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(255, 99, 132, 1)'
+            pointHoverBorderColor: 'rgba(153, 102, 255, 1)'
         });
     }
 
@@ -61,8 +61,8 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
         datasets.push({
             label: 'Max Recommended',
             data: maxData,
-            backgroundColor: 'rgba(255, 206, 86, 0.1)',
-            borderColor: 'rgba(255, 206, 86, 0.5)',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            borderColor: 'rgba(220, 53, 69, 0.5)',
             borderWidth: 1,
             borderDash: [5, 5],
             pointRadius: 0

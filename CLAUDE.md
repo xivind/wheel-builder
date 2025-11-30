@@ -211,26 +211,47 @@ spoke_length = sqrt(
 
 ### Tension Tracking System
 
-Multi-session tension tracking with Park Tool TM-1 integration:
+Multi-session tension tracking with Park Tool TM-1 integration and percentage-based quality assessment:
 
 **Workflow:**
 1. Create tension session for a build (e.g., "Initial Build", "After First True")
 2. Enter Park Tool TM-1 readings for each spoke position
 3. System converts TM-1 readings to kgf using spoke type conversion table
-4. Calculates statistics (average, std dev, min, max) per side
-5. Determines quality status based on tension range and deviation
+4. Calculates statistics (average, std dev, std dev %, min, max, range) per side
+5. Displays reference ranges (±5%, ±10%, ±20%) based on actual session average
+6. Real-time deviation percentage badges for each spoke
+7. Determines quality status based on industry standards
 
-**Quality Status Logic:**
-- **Well Balanced**: Std dev < 5% of average, all spokes within recommended range
-- **Needs Truing**: Std dev 5-10% of average
-- **Uneven Tension**: Std dev > 10% of average
-- **Over/Under Tension**: Spokes outside recommended range
+**Deviation Tracking (Dual Approach):**
+- **Stored in database**: `average_deviation_status` ('in_range', 'over', 'under') based on ±20% threshold
+  - Written and updated for ALL readings when any reading changes
+  - Ensures consistency - no stale data
+  - Available for database queries and future features
+- **Calculated for display**: `deviation_pct` (actual percentage from session average)
+  - Calculated on-the-fly, not stored
+  - Color-coded badges: < 5% (green), 5-10% (light green), 10-20% (yellow), > 20% (red)
+  - ALL badges update via HTMX when any reading changes
+
+**Quality Status Logic (Industry Standards):**
+- **Well Balanced**: Std dev < 5%, no spokes > 10% from average
+- **Needs Truing**: Std dev 5-10%, some spokes > 10% but < 20% from average
+- **Uneven Tension**: Std dev > 10%, or spokes > 20% from average
+- **Out of Range**: Spokes outside spoke type's recommended tension limits
+
+**Session Independence:**
+- Each session has its own readings, averages, and deviation percentages
+- Editing one session does not affect other sessions
+- Deleting/fixing bad readings correctly recalculates all percentages for that session
+- Typical workflow: Edit readings in active session for weeks, then create new session after riding
 
 **Implementation:**
-- `business_logic.py::analyze_tension_readings()`: Quality analysis
-- `business_logic.py::tm_reading_to_kgf()`: TM-1 to kgf conversion
-- `database_manager.py::bulk_create_or_update_readings()`: Efficient batch updates
-- Radar charts visualize tension distribution around the wheel
+- `business_logic.py::analyze_tension_readings()`: Calculates stats, std dev %, reference ranges
+- `business_logic.py::determine_quality_status()`: Percentage-based quality assessment
+- `business_logic.py::tm_reading_to_kgf()`: TM-1 to kgf conversion with linear interpolation
+- `main.py`: Recalculates ALL deviation statuses when average changes (bug fix)
+- `main.py`: Calculates deviation_pct for display (not stored)
+- `templates/partials/tension_reading_response.html`: HTMX updates all badges on both sides
+- Radar charts visualize tension distribution (blue=left, purple=right, red=max recommended)
 
 ### Component Locking
 
