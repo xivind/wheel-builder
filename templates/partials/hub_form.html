@@ -93,11 +93,11 @@
                                placeholder="mm" {% if locked %}disabled{% else %}required{% endif %}>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="number_of_spokes" class="form-label">Number of Spokes</label>
+                        <label for="number_of_spokes" class="form-label">Number of Spokes <span class="text-danger">*</span></label>
                         <input type="number" class="form-control" id="number_of_spokes"
                                name="number_of_spokes"
-                               value="{% if hub and hub.number_of_spokes %}{{ hub.number_of_spokes }}{% endif %}"
-                               placeholder="e.g., 32, 36" {% if locked %}disabled{% endif %}>
+                               value="{% if hub %}{{ hub.number_of_spokes }}{% endif %}"
+                               placeholder="e.g., 32, 36" {% if locked %}disabled{% else %}required{% endif %}>
                     </div>
                 </div>
                 <p class="text-muted small mt-3">

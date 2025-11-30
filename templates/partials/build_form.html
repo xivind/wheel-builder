@@ -25,7 +25,7 @@
                         <select class="form-select" id="hub_id" name="hub_id" onchange="updateSpokeLengthRecommendations()">
                             <option value="">Select hub...</option>
                             {% for hub in hubs %}
-                            <option value="{{ hub.id }}" {% if build and build.hub_id == hub.id %}selected{% endif %}>{{ hub.make }} {{ hub.model }} ({{ hub.type }})</option>
+                            <option value="{{ hub.id }}" {% if build and build.hub_id == hub.id %}selected{% endif %}>{{ hub.make }} {{ hub.model }} ({{ hub.type }}, {{ hub.number_of_spokes }} holes)</option>
                             {% endfor %}
                         </select>
                     </div>
