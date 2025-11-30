@@ -62,10 +62,15 @@ docker start wheel-builder
 # Install dependencies
 pip install -r requirements.txt
 
-# Run with hot reload
+# Development with hot reload (detects code changes automatically)
+# Note: You may see "1 change detected" messages due to log files being written.
+# This is harmless - uvicorn detects the changes but doesn't actually reload.
 uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
 
-# Run for production
+# Development without hot reload (clean console output, manual restart needed)
+uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
+
+# Production (same as above, no reload)
 uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
 ```
 
@@ -257,11 +262,11 @@ cp ~/code/container_data/wheel_builder.db ~/backup/wheel_builder_$(date +%Y%m%d)
 
 ### Health Check
 
-The application includes health monitoring:
-- `health_check()` function in main.py tests database connectivity on startup
-- Writes "ok" or "error" to `status.txt`
-- Docker HEALTHCHECK reads this file every 10 minutes
-- Container is marked unhealthy if status.txt contains "error"
+The application includes Docker-based health monitoring:
+- Docker HEALTHCHECK uses curl to test the HTTP endpoint every 10 minutes
+- Tests that the application is responding to requests (returns HTTP 200)
+- Container is marked unhealthy if endpoint fails to respond
+- Command: `curl -sSf -o /dev/null -w "%{http_code}" http://127.0.0.1:8004 || exit 1`
 
 ## Important Constraints
 

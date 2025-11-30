@@ -30,8 +30,5 @@ coverage.xml
 # Database
 data/
 
-# Healthcheck status
-status.txt
-
 # Playwright MCP
 .playwright-mcp/
