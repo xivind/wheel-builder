@@ -116,8 +116,8 @@ class TensionReading(BaseModel):
     average_deviation_status = CharField()  # in_range, over, under
 
 def initialize_database():
-    """Create tables if they don't exist."""
-    db.connect()
+    """Create tables if they don't exist. Assumes database connection is already open."""
+    db.connect(reuse_if_open=True)
     db.create_tables([
         Hub, Rim, SpokeType, ConversionPoint, Spoke, Nipple,
         WheelBuild, TensionSession, TensionReading
@@ -127,5 +127,3 @@ def initialize_database():
     if SpokeType.select().count() == 0:
         from seed_spoke_types import seed_spoke_types
         seed_spoke_types()
-
-    db.close()

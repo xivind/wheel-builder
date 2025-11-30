@@ -8,6 +8,9 @@ import statistics
 
 logger = logging.getLogger(__name__)
 
+# Tension measurement quality thresholds
+TENSION_DEVIATION_TOLERANCE = 0.20  # ±20% tolerance from average for quality assessment
+
 def can_calculate_spoke_length(wheel_build):
     """Check if wheel build has all required data for spoke length calculation.
 
@@ -31,38 +34,6 @@ def can_calculate_spoke_length(wheel_build):
         missing.append("spoke count")
 
     return (len(missing) == 0, missing)
-
-def check_component_locked(component_type, component_id):
-    """Check if a component is used in any wheel builds.
-
-    Args:
-        component_type: 'hub', 'rim', 'spoke', or 'nipple'
-        component_id: Component UUID
-
-    Returns:
-        dict: {'locked': bool, 'builds': list of build names}
-    """
-    if component_type == 'hub':
-        builds = get_builds_using_hub(component_id)
-    elif component_type == 'rim':
-        builds = get_builds_using_rim(component_id)
-    elif component_type == 'spoke':
-        builds = get_builds_using_spoke(component_id)
-    elif component_type == 'nipple':
-        builds = get_builds_using_nipple(component_id)
-    else:
-        logger.error(f"Unknown component type: {component_type}")
-        return {'locked': False, 'builds': []}
-
-    build_names = [build.name for build in builds]
-    is_locked = len(builds) > 0
-
-    logger.info(f"Component {component_type}:{component_id} locked={is_locked}, used in {len(builds)} builds")
-
-    return {
-        'locked': is_locked,
-        'builds': build_names
-    }
 
 def calculate_spoke_length(hub, rim, nipple, spoke_count, lacing_pattern, side):
     """Calculate recommended spoke length for one side of the wheel.
@@ -122,46 +93,9 @@ def calculate_spoke_length(hub, rim, nipple, spoke_count, lacing_pattern, side):
     # Subtract half the spoke hole diameter (spoke extends partway through flange)
     spoke_length = math.sqrt(a + b + c) - (hub.spoke_hole_diameter / 2)
 
-    logger.info(f"Calculated spoke length for {side} side: {spoke_length:.2f}mm")
+    logger.debug(f"Calculated spoke length for {side} side: {spoke_length:.2f}mm")
 
     return round(spoke_length, 2)
-
-def calculate_recommended_spoke_lengths(wheel_build):
-    """Calculate recommended spoke lengths for both sides.
-
-    Args:
-        wheel_build: WheelBuild model instance
-
-    Returns:
-        dict: {'left': float, 'right': float} or None if can't calculate
-    """
-    can_calc, missing = can_calculate_spoke_length(wheel_build)
-    if not can_calc:
-        logger.warning(f"Cannot calculate spoke length, missing: {missing}")
-        return None
-
-    hub = get_hub_by_id(wheel_build.hub_id)
-    rim = get_rim_by_id(wheel_build.rim_id)
-    nipple = get_nipple_by_id(wheel_build.nipple_id)
-
-    left_length = calculate_spoke_length(
-        hub, rim, nipple,
-        wheel_build.spoke_count,
-        wheel_build.lacing_pattern,
-        "left"
-    )
-
-    right_length = calculate_spoke_length(
-        hub, rim, nipple,
-        wheel_build.spoke_count,
-        wheel_build.lacing_pattern,
-        "right"
-    )
-
-    return {
-        'left': left_length,
-        'right': right_length
-    }
 
 def calculate_tension_range(spoke_left, spoke_right, rim):
     """Calculate recommended min/max tension for a spoke/rim combination.
@@ -216,7 +150,7 @@ def calculate_tension_range(spoke_left, spoke_right, rim):
         min_tm = min(spoke_type_left.min_tm_reading, spoke_type_right.min_tm_reading)
         max_tm = max(spoke_type_left.max_tm_reading, spoke_type_right.max_tm_reading)
 
-        logger.info(
+        logger.debug(
             f"Different spoke types detected - Left: {spoke_type_left.name} "
             f"(max {spoke_type_left.max_tension_kgf} kgf), "
             f"Right: {spoke_type_right.name} (max {spoke_type_right.max_tension_kgf} kgf). "
@@ -246,7 +180,7 @@ def calculate_tension_range(spoke_left, spoke_right, rim):
             'different_spoke_types': False
         }
 
-    logger.info(
+    logger.debug(
         f"Tension range for {spoke_type.name}: "
         f"{spoke_type.min_tension_kgf}-{spoke_type.max_tension_kgf} kgf, "
         f"TM: {spoke_type.min_tm_reading}-{spoke_type.max_tm_reading}"

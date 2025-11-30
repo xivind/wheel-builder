@@ -70,8 +70,18 @@ def seed_spoke_types():
     logger.info("Seeding spoke types from conversion_table.txt")
 
     # Load conversion table
-    with open('conversion_table.txt', 'r') as f:
-        conversion_data = json.load(f)
+    try:
+        with open('conversion_table.txt', 'r') as f:
+            conversion_data = json.load(f)
+    except FileNotFoundError:
+        logger.error("conversion_table.txt not found - cannot seed spoke types")
+        return 0
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in conversion_table.txt: {e}")
+        return 0
+    except Exception as e:
+        logger.error(f"Failed to load conversion_table.txt: {e}")
+        return 0
 
     spoke_types_created = 0
     conversion_points_created = 0

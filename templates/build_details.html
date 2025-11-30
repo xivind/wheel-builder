@@ -541,7 +541,7 @@
                                 </div>
                                 <div class="col-6">
                                     <small class="text-muted">Std Dev:</small>
-                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.std_dev) }}{% else %}-{% endif %}</div>
+                                    <div class="fw-bold">{% if stats_left and stats_left.readings|length > 0 %}{{ "%.1f"|format(stats_left.std_dev) }} kgf{% else %}-{% endif %}</div>
                                 </div>
                                 <div class="col-6">
                                     <small class="text-muted">Min:</small>
@@ -630,7 +630,7 @@
                                 </div>
                                 <div class="col-6">
                                     <small class="text-muted">Std Dev:</small>
-                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.std_dev) }}{% else %}-{% endif %}</div>
+                                    <div class="fw-bold">{% if stats_right and stats_right.readings|length > 0 %}{{ "%.1f"|format(stats_right.std_dev) }} kgf{% else %}-{% endif %}</div>
                                 </div>
                                 <div class="col-6">
                                     <small class="text-muted">Min:</small>

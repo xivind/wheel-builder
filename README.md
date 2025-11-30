@@ -139,7 +139,6 @@ The application follows a strict 3-layer architecture:
 - **database_manager.py**: Data access layer (all CRUD operations)
 - **database_model.py**: ORM models (PeeWee model definitions)
 - **utils.py**: Helper functions (UUID generation, etc.)
-- **logger.py**: Logging configuration
 
 ## Data Persistence
 
@@ -232,7 +231,6 @@ wheel-builder/
 ├── database_manager.py          # Database operations
 ├── database_model.py            # ORM models
 ├── utils.py                     # Helper functions
-├── logger.py                    # Logging config
 ├── seed_sample_components.py    # Sample data population
 ├── requirements.txt             # Python dependencies
 ├── Dockerfile                   # Docker image definition

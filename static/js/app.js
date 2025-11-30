@@ -1,5 +1,9 @@
 // Wheel Builder JavaScript
 
+// Chart configuration constants
+const CHART_VISUAL_PADDING_PERCENT = 0.2;  // Add 20% visual space above max recommended tension
+const CHART_DEFAULT_MAX_KGF = 300;  // Default max kgf when no recommendation available
+
 // Global chart instance
 let tensionChartInstance = null;
 
@@ -78,7 +82,7 @@ function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, 
                 r: {
                     beginAtZero: true,
                     min: 0,
-                    suggestedMax: recommendedMax ? recommendedMax * 1.2 : 300,
+                    suggestedMax: recommendedMax ? recommendedMax * (1 + CHART_VISUAL_PADDING_PERCENT) : CHART_DEFAULT_MAX_KGF,
                     ticks: {
                         stepSize: 50
                     }

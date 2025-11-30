@@ -104,9 +104,30 @@ This codebase follows a strict three-layer architecture. **Do not violate these 
 
 - **database_model.py** - Peewee ORM models (7 tables)
 - **utils.py** - Helper functions (UUID generation)
-- **logger.py** - Standard logging using Python's logging module
 - **seed_sample_components.py** - Seeds sample components on first run
 - **seed_spoke_types.py** - Loads Park Tool TM-1 conversion table from conversion_table.txt
+
+### Logging Guidelines
+
+The application uses Python's standard logging module (`logging.getLogger(__name__)` in each module). Follow these consistent logging levels:
+
+- **logger.info()** - Application lifecycle events and successful CRUD operations
+  - Examples: "Starting Wheel Builder application", "Created wheel build: {name}", "Updated tension session"
+  - Use for: Application startup/shutdown, successful creates/updates/deletes
+
+- **logger.debug()** - Detailed diagnostic information for development and troubleshooting
+  - Examples: "Received tm_reading: '{value}'", "Exact match: TM {reading} = {kgf} kgf"
+  - Use for: Form data received, conversion calculations, intermediate values
+
+- **logger.warning()** - Non-critical issues that don't stop execution
+  - Examples: "Failed to update status for build {id}", "TM reading {value} is below conversion table range"
+  - Use for: Failed optional operations, validation warnings, missing optional data
+
+- **logger.error()** - Actual errors requiring attention
+  - Examples: "Error creating wheel build: {exception}", "SpokeType {id} not found"
+  - Use for: Exceptions, database errors, validation failures, resource not found
+
+**Important:** Always use `logging.getLogger(__name__)` - there is no custom logger.py module.
 
 ### Database Models
 

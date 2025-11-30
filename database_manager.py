@@ -129,17 +129,15 @@ def get_builds_using_rim(rim_id):
 
 # Spoke operations
 
-def create_spoke(material, gauge, max_tension, length):
-    """Create a new spoke type in the database."""
+def create_spoke(spoke_type_id, length):
+    """Create a new spoke in the database."""
     spoke_id = generate_uuid()
     spoke = Spoke.create(
         id=spoke_id,
-        material=material,
-        gauge=gauge,
-        max_tension=max_tension,
+        spoke_type_id=spoke_type_id,
         length=length
     )
-    logger.info(f"Created spoke: {material} {gauge} (ID: {spoke_id})")
+    logger.info(f"Created spoke: {spoke_id} (type: {spoke_type_id}, length: {length}mm)")
     return spoke
 
 def get_all_spokes():

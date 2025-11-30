@@ -74,8 +74,16 @@ def seed_components():
 
     # Find specific spoke types by name
     steel_round_2mm = next((st for st in spoke_types if st.name == "Steel Round 2.0mm"), None)
+    if not steel_round_2mm:
+        logger.warning("Steel Round 2.0mm spoke type not found - skipping sample spokes with this type")
+
     steel_round_18mm = next((st for st in spoke_types if st.name == "Steel Round 1.8mm"), None)
+    if not steel_round_18mm:
+        logger.warning("Steel Round 1.8mm spoke type not found - skipping sample spokes with this type")
+
     titanium_round_2mm = next((st for st in spoke_types if st.name == "Titanium Round 2.0mm"), None)
+    if not titanium_round_2mm:
+        logger.warning("Titanium Round 2.0mm spoke type not found - skipping sample spokes with this type")
 
     # Create sample spokes using spoke types
     spokes_data = [
@@ -87,8 +95,12 @@ def seed_components():
     ]
 
     # Filter out None entries and create spokes
-    for spoke_data in [s for s in spokes_data if s]:
+    total_possible_spokes = len(spokes_data)
+    spokes_to_create = [s for s in spokes_data if s]
+    for spoke_data in spokes_to_create:
         Spoke.create(id=str(uuid.uuid4()), **spoke_data)
+
+    logger.info(f"Created {len(spokes_to_create)} of {total_possible_spokes} sample spokes")
 
     # Seed Nipples
     nipples_data = [

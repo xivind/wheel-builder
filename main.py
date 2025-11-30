@@ -24,9 +24,11 @@ from database_manager import (
 from business_logic import (
     can_calculate_spoke_length, calculate_spoke_length,
     analyze_tension_readings, calculate_tension_range,
-    determine_quality_status, tm_reading_to_kgf
+    determine_quality_status, tm_reading_to_kgf,
+    TENSION_DEVIATION_TOLERANCE
 )
 from datetime import datetime
+from utils import empty_to_none
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +44,8 @@ templates = Jinja2Templates(directory="templates")
 async def startup_event():
     """Initialize database on startup."""
     logger.info("Starting Wheel Builder application...")
-    initialize_database()
     db.connect()
+    initialize_database()
     seed_components()
     logger.info("Application ready")
 
@@ -142,13 +144,13 @@ async def create_build(
     """Create a new wheel build."""
     try:
         # Convert empty strings to None
-        hub_id = hub_id if hub_id else None
-        rim_id = rim_id if rim_id else None
-        spoke_left_id = spoke_left_id if spoke_left_id else None
-        spoke_right_id = spoke_right_id if spoke_right_id else None
-        nipple_id = nipple_id if nipple_id else None
-        lacing_pattern = lacing_pattern if lacing_pattern else None
-        comments = comments if comments else None
+        hub_id = empty_to_none(hub_id)
+        rim_id = empty_to_none(rim_id)
+        spoke_left_id = empty_to_none(spoke_left_id)
+        spoke_right_id = empty_to_none(spoke_right_id)
+        nipple_id = empty_to_none(nipple_id)
+        lacing_pattern = empty_to_none(lacing_pattern)
+        comments = empty_to_none(comments)
 
         # Auto-compute spoke_count from rim if rim is selected
         spoke_count = None
@@ -384,13 +386,13 @@ async def update_build_route(
     """Handle build update."""
     try:
         # Convert empty strings to None
-        hub_id = hub_id if hub_id else None
-        rim_id = rim_id if rim_id else None
-        spoke_left_id = spoke_left_id if spoke_left_id else None
-        spoke_right_id = spoke_right_id if spoke_right_id else None
-        nipple_id = nipple_id if nipple_id else None
-        lacing_pattern = lacing_pattern if lacing_pattern else None
-        comments = comments if comments else None
+        hub_id = empty_to_none(hub_id)
+        rim_id = empty_to_none(rim_id)
+        spoke_left_id = empty_to_none(spoke_left_id)
+        spoke_right_id = empty_to_none(spoke_right_id)
+        nipple_id = empty_to_none(nipple_id)
+        lacing_pattern = empty_to_none(lacing_pattern)
+        comments = empty_to_none(comments)
 
         # Auto-compute spoke_count from rim if rim is selected
         spoke_count = None
@@ -538,7 +540,7 @@ async def create_session_route(
             }, status_code=400)
 
         # Convert empty notes to None
-        notes = notes if notes else None
+        notes = empty_to_none(notes)
 
         # Create the tension session
         session = create_tension_session(
@@ -593,7 +595,7 @@ async def update_session_route(
             }, status_code=400)
 
         # Convert empty notes to None
-        notes = notes if notes else None
+        notes = empty_to_none(notes)
 
         # Update the tension session
         session = update_tension_session(
@@ -661,163 +663,6 @@ async def delete_session_route(
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error_message": "Unable to delete tension session. Please try again later."
-        }, status_code=500)
-
-@app.post("/build/{build_id}/session/{session_id}/readings")
-async def save_tension_readings(
-    request: Request,
-    build_id: str,
-    session_id: str
-):
-    """Save tension readings for a session."""
-    try:
-        # Verify the build and session exist
-        build = get_wheel_build_by_id(build_id)
-        if not build:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
-                "error_message": "Build not found."
-            }, status_code=404)
-
-        session = get_tension_session_by_id(session_id)
-        if not session or session.wheel_build_id != build_id:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
-                "error_message": "Session not found."
-            }, status_code=404)
-
-        # Get spoke and rim for tension calculations
-        # Use spoke_left if available, otherwise spoke_right (for tension range calculation)
-        spoke_left = get_spoke_by_id(build.spoke_left_id) if build.spoke_left_id else None
-        spoke_right = get_spoke_by_id(build.spoke_right_id) if build.spoke_right_id else None
-        spoke_for_tension = spoke_left or spoke_right
-        rim = get_rim_by_id(build.rim_id) if build.rim_id else None
-
-        if not spoke_for_tension or not rim:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
-                "error_message": "Build missing spoke or rim configuration."
-            }, status_code=400)
-
-        # Parse form data
-        form_data = await request.form()
-
-        # Calculate tension range
-        tension_range = calculate_tension_range(spoke_left, spoke_right, rim)
-
-        # Collect all readings data
-        readings_data = []
-        all_readings_for_stats = []
-
-        # First pass: collect all readings and convert to kgf
-        for key, value in form_data.items():
-            if not key.startswith('tm_') or not value:
-                continue
-
-            # Parse field name: tm_{spoke_number}_{side}
-            parts = key.split('_')
-            if len(parts) != 3:
-                continue
-
-            spoke_number = int(parts[1])
-            side = parts[2]  # 'left' or 'right'
-            tm_reading = float(value)
-
-            # Convert to kgf using side-specific spoke type
-            spoke_for_conversion = spoke_left if side == 'left' else spoke_right
-            if not spoke_for_conversion:
-                spoke_for_conversion = spoke_for_tension  # Fallback if one side is missing
-            conversion_result = tm_reading_to_kgf(tm_reading, spoke_for_conversion.spoke_type_id)
-
-            # Handle conversion status
-            if conversion_result['status'] in ['below_table', 'above_table']:
-                # Out of range - save NULL for kgf
-                estimated_tension_kgf = None
-                range_status = conversion_result['status']
-                average_deviation_status = 'unknown'
-            else:
-                # Valid conversion
-                estimated_tension_kgf = conversion_result['kgf']
-
-                # Determine side-specific max tension
-                if tension_range.get('different_spoke_types'):
-                    # Use side-specific max when different spoke types are used
-                    max_kgf = tension_range['left_max_kgf'] if side == 'left' else tension_range['right_max_kgf']
-                else:
-                    # Use common max when same spoke type on both sides
-                    max_kgf = tension_range['max_kgf']
-
-                # Calculate range status using side-specific max
-                if estimated_tension_kgf < tension_range['min_kgf']:
-                    range_status = 'under'
-                elif estimated_tension_kgf > max_kgf:
-                    range_status = 'over'
-                else:
-                    range_status = 'in_range'
-
-                # average_deviation_status will be updated in second pass
-                average_deviation_status = 'in_range'
-
-            reading_info = {
-                'spoke_number': spoke_number,
-                'side': side,
-                'tm_reading': tm_reading,
-                'estimated_tension_kgf': estimated_tension_kgf,
-                'range_status': range_status,
-                'average_deviation_status': average_deviation_status
-            }
-
-            readings_data.append(reading_info)
-            all_readings_for_stats.append(reading_info)
-
-        # Second pass: calculate average deviation status
-        # Separate by side, filtering out NULL values (out-of-range readings)
-        left_tensions = [r['estimated_tension_kgf'] for r in readings_data
-                        if r['side'] == 'left' and r['estimated_tension_kgf'] is not None]
-        right_tensions = [r['estimated_tension_kgf'] for r in readings_data
-                         if r['side'] == 'right' and r['estimated_tension_kgf'] is not None]
-
-        left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
-        right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
-
-        # Update average deviation status (only for valid readings)
-        for reading in readings_data:
-            # Skip readings that are already marked as 'unknown' (out of range)
-            if reading['average_deviation_status'] == 'unknown':
-                continue
-
-            avg = left_avg if reading['side'] == 'left' else right_avg
-
-            if avg > 0:
-                upper_limit = avg * 1.2
-                lower_limit = avg * 0.8
-
-                if reading['estimated_tension_kgf'] < lower_limit:
-                    reading['average_deviation_status'] = 'under'
-                elif reading['estimated_tension_kgf'] > upper_limit:
-                    reading['average_deviation_status'] = 'over'
-                else:
-                    reading['average_deviation_status'] = 'in_range'
-
-        # Save to database
-        if readings_data:
-            bulk_create_or_update_readings(session_id, readings_data)
-            logger.info(f"Saved {len(readings_data)} tension readings for session {session_id}")
-
-        # Redirect back to build details with session selected
-        return RedirectResponse(url=f"/build/{build_id}?session={session_id}", status_code=303)
-
-    except ValueError as e:
-        logger.error(f"Error parsing tension readings: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
-            "error_message": "Invalid reading values. Please check your inputs."
-        }, status_code=400)
-    except Exception as e:
-        logger.error(f"Error saving tension readings: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
-            "error_message": "Unable to save tension readings. Please try again later."
         }, status_code=500)
 
 @app.post("/build/{build_id}/session/{session_id}/reading/{spoke_num}/{side}")
@@ -979,8 +824,8 @@ async def auto_save_tension_reading(
             # Determine average deviation status
             avg = left_avg if side == 'left' else right_avg
             if avg > 0:
-                upper_limit = avg * 1.2
-                lower_limit = avg * 0.8
+                upper_limit = avg * (1 + TENSION_DEVIATION_TOLERANCE)
+                lower_limit = avg * (1 - TENSION_DEVIATION_TOLERANCE)
                 if estimated_tension_kgf < lower_limit:
                     avg_deviation_status = 'under'
                 elif estimated_tension_kgf > upper_limit:
@@ -1001,8 +846,52 @@ async def auto_save_tension_reading(
             average_deviation_status=avg_deviation_status
         )
 
-        # Fetch ALL readings again for stats calculation
+        # Fetch ALL readings again for stats calculation and recalculation
         readings = get_readings_by_session(session_id)
+
+        # BUGFIX: Recalculate avg_deviation_status for ALL readings
+        # The average changes when new readings are added, so we must update all existing readings
+        # Filter out NULL values (out-of-range readings) for average calculation
+        left_tensions = [r.estimated_tension_kgf for r in readings
+                         if r.side == 'left' and r.estimated_tension_kgf is not None]
+        right_tensions = [r.estimated_tension_kgf for r in readings
+                          if r.side == 'right' and r.estimated_tension_kgf is not None]
+
+        left_avg = sum(left_tensions) / len(left_tensions) if left_tensions else 0
+        right_avg = sum(right_tensions) / len(right_tensions) if right_tensions else 0
+
+        # Update avg_deviation_status for ALL readings based on current averages
+        from database_model import TensionReading as TensionReadingModel
+        for reading in readings:
+            if reading.estimated_tension_kgf is None:
+                # Out-of-range reading, keep as 'unknown'
+                continue
+
+            # Determine which average to use based on side
+            avg = left_avg if reading.side == 'left' else right_avg
+
+            if avg > 0:
+                upper_limit = avg * (1 + TENSION_DEVIATION_TOLERANCE)
+                lower_limit = avg * (1 - TENSION_DEVIATION_TOLERANCE)
+
+                if reading.estimated_tension_kgf < lower_limit:
+                    new_status = 'under'
+                elif reading.estimated_tension_kgf > upper_limit:
+                    new_status = 'over'
+                else:
+                    new_status = 'in_range'
+            else:
+                new_status = 'in_range'
+
+            # Update the database if status changed
+            if reading.average_deviation_status != new_status:
+                TensionReadingModel.update(average_deviation_status=new_status).where(
+                    TensionReadingModel.id == reading.id
+                ).execute()
+                logger.debug(f"Updated avg_deviation_status for spoke {reading.spoke_number} "
+                           f"{reading.side} from '{reading.average_deviation_status}' to '{new_status}'")
+                # Update the in-memory object too for consistency
+                reading.average_deviation_status = new_status
         analysis = analyze_tension_readings(readings, tension_range)
         stats_left = analysis['left']
         stats_right = analysis['right']
@@ -1210,7 +1099,7 @@ async def create_hub_route(
     left_flange_offset: float = Form(...),
     right_flange_offset: float = Form(...),
     spoke_hole_diameter: float = Form(...),
-    number_of_spokes: int = Form(None)
+    number_of_spokes: int = Form(...)
 ):
     """Create a new hub."""
     try:
@@ -1248,7 +1137,7 @@ async def update_hub_route(
     left_flange_offset: float = Form(...),
     right_flange_offset: float = Form(...),
     spoke_hole_diameter: float = Form(...),
-    number_of_spokes: int = Form(None)
+    number_of_spokes: int = Form(...)
 ):
     """Update an existing hub."""
     try:
@@ -1381,13 +1270,7 @@ async def create_spoke_route(
             }, status_code=400)
 
         # Create spoke with spoke_type_id and length
-        from database_model import Spoke
-        import uuid
-        spoke = Spoke.create(
-            id=str(uuid.uuid4()),
-            spoke_type_id=spoke_type_id,
-            length=length
-        )
+        spoke = create_spoke(spoke_type_id=spoke_type_id, length=length)
 
         logger.info(f"Created spoke: {spoke.id} (type: {spoke_type.name}, length: {length}mm)")
         return RedirectResponse(url="/config#spokes", status_code=303)
@@ -1436,8 +1319,7 @@ async def update_spoke_route(
             }, status_code=400)
 
         # Update only length (spoke_type_id cannot be changed)
-        spoke.length = length
-        spoke.save()
+        update_spoke(spoke_id, length=length)
 
         logger.info(f"Updated spoke {spoke_id}: length={length}mm")
         return RedirectResponse(url="/config#spokes", status_code=303)
@@ -1569,8 +1451,3 @@ async def delete_nipple_route(nipple_id: str):
         logger.error(f"Error deleting nipple: {e}")
         return RedirectResponse(url="/config#nipples", status_code=303)
 
-@app.get("/health")
-async def health_endpoint():
-    """Health check endpoint."""
-    is_healthy = health_check()
-    return {"status": "healthy" if is_healthy else "unhealthy"}
