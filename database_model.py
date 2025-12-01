@@ -2,9 +2,10 @@ from peewee import *
 import os
 
 # Database configuration
-# Default to ~/code/container_data/wheel_builder.db (shared with Docker)
-DEFAULT_DB_PATH = os.path.expanduser('~/code/container_data/wheel_builder.db')
-DATABASE_PATH = os.getenv('DATABASE_PATH', DEFAULT_DB_PATH)
+# Default to ./data/wheel_builder.db (works both locally and in Docker)
+# In Docker: resolves to /app/data/wheel_builder.db (mounted volume)
+# Locally: resolves to ./data/wheel_builder.db (symlinked to ~/code/container_data)
+DATABASE_PATH = os.getenv('DATABASE_PATH', './data/wheel_builder.db')
 
 # Ensure directory exists
 os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
