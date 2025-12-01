@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#f39c12" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Rim -->
+  <circle cx="50" cy="50" r="44" />
+  
+  <!-- Hub -->
+  <circle cx="50" cy="50" r="6" fill="#f39c12" />
+  
+  <!-- Spokes -->
+  <line x1="50" y1="50" x2="50" y2="6" />
+  <line x1="50" y1="50" x2="94" y2="50" />
+  <line x1="50" y1="50" x2="50" y2="94" />
+  <line x1="50" y1="50" x2="6" y2="50" />
+  
+  <line x1="50" y1="50" x2="81.1" y2="18.9" />
+  <line x1="50" y1="50" x2="81.1" y2="81.1" />
+  <line x1="50" y1="50" x2="18.9" y2="81.1" />
+  <line x1="50" y1="50" x2="18.9" y2="18.9" />
+</svg>
