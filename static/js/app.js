@@ -8,6 +8,53 @@ const CHART_DEFAULT_MAX_KGF = 300;  // Default max kgf when no recommendation av
 let tensionChartInstance = null;
 
 /**
+ * Show confirmation modal and return a Promise that resolves to true/false
+ * @param {string} message - The confirmation message to display
+ * @returns {Promise<boolean>} - Resolves to true if confirmed, false if cancelled
+ */
+function showConfirmModal(message) {
+    return new Promise((resolve) => {
+        const modalElement = document.getElementById('confirmModal');
+        const messageElement = document.getElementById('confirmModalMessage');
+        const confirmBtn = document.getElementById('confirmActionBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        // Set the message
+        messageElement.textContent = message;
+
+        // Create modal instance
+        const modal = new bootstrap.Modal(modalElement);
+
+        // Remove any existing event listeners by cloning buttons
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        // Add new event listeners
+        newConfirmBtn.addEventListener('click', () => {
+            modal.hide();
+            resolve(true);
+        });
+
+        newCancelBtn.addEventListener('click', () => {
+            modal.hide();
+            resolve(false);
+        });
+
+        // Handle modal close (X button or backdrop)
+        const handleClose = () => {
+            resolve(false);
+            modalElement.removeEventListener('hidden.bs.modal', handleClose);
+        };
+        modalElement.addEventListener('hidden.bs.modal', handleClose);
+
+        // Show the modal
+        modal.show();
+    });
+}
+
+/**
  * Initialize tension radar chart
  */
 function initTensionChart(leftReadings, rightReadings, leftLabels, rightLabels, recommendedMin, recommendedMax) {

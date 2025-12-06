@@ -97,9 +97,9 @@
                                                 {% if hub.locked %}disabled title="Cannot edit - used by {{ hub.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <form method="POST" action="/config/hub/{{ hub.id }}/delete" style="display: inline;">
+                                        <form method="POST" action="/config/hub/{{ hub.id }}/delete" style="display: inline;" class="delete-form" data-item-type="hub" data-item-name="{{ hub.make }} {{ hub.model }}">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    {% if hub.locked %}disabled title="Cannot delete - used by {{ hub.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this hub?')" title="Delete"{% endif %}>
+                                                    {% if hub.locked %}disabled title="Cannot delete - used by {{ hub.used_by_builds|length }} build(s)"{% else %}title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -179,9 +179,9 @@
                                                 {% if rim.locked %}disabled title="Cannot edit - used by {{ rim.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <form method="POST" action="/config/rim/{{ rim.id }}/delete" style="display: inline;">
+                                        <form method="POST" action="/config/rim/{{ rim.id }}/delete" style="display: inline;" class="delete-form" data-item-type="rim" data-item-name="{{ rim.make }} {{ rim.model }}">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    {% if rim.locked %}disabled title="Cannot delete - used by {{ rim.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this rim?')" title="Delete"{% endif %}>
+                                                    {% if rim.locked %}disabled title="Cannot delete - used by {{ rim.used_by_builds|length }} build(s)"{% else %}title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -252,9 +252,9 @@
                                                 {% if spoke.locked %}disabled title="Cannot edit - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <form method="POST" action="/config/spoke/{{ spoke.id }}/delete" style="display: inline;">
+                                        <form method="POST" action="/config/spoke/{{ spoke.id }}/delete" style="display: inline;" class="delete-form" data-item-type="spoke" data-item-name="{{ spoke.spoke_type.name }} @ {{ spoke.length }}mm">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    {% if spoke.locked %}disabled title="Cannot delete - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this spoke?')" title="Delete"{% endif %}>
+                                                    {% if spoke.locked %}disabled title="Cannot delete - used by {{ spoke.used_by_builds|length }} build(s)"{% else %}title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -324,9 +324,9 @@
                                                 {% if nipple.locked %}disabled title="Cannot edit - used by {{ nipple.used_by_builds|length }} build(s)"{% else %}title="Edit"{% endif %}>
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <form method="POST" action="/config/nipple/{{ nipple.id }}/delete" style="display: inline;">
+                                        <form method="POST" action="/config/nipple/{{ nipple.id }}/delete" style="display: inline;" class="delete-form" data-item-type="nipple" data-item-name="{{ nipple.material|title }} {{ nipple.diameter }}mm">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    {% if nipple.locked %}disabled title="Cannot delete - used by {{ nipple.used_by_builds|length }} build(s)"{% else %}onclick="return confirm('Are you sure you want to delete this nipple?')" title="Delete"{% endif %}>
+                                                    {% if nipple.locked %}disabled title="Cannot delete - used by {{ nipple.used_by_builds|length }} build(s)"{% else %}title="Delete"{% endif %}>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -387,6 +387,28 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.show();
         }
     }
+
+    // Handle delete confirmations for all component types
+    const deleteForms = document.querySelectorAll('.delete-form');
+    deleteForms.forEach(function(form) {
+        form.addEventListener('submit', async function(e) {
+            // Don't prevent submit if button is disabled (locked items)
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton && submitButton.disabled) {
+                return;
+            }
+
+            e.preventDefault();
+            const itemType = form.getAttribute('data-item-type');
+            const itemName = form.getAttribute('data-item-name');
+            const confirmed = await showConfirmModal(
+                'Are you sure you want to delete this ' + itemType + ' (' + itemName + ')?'
+            );
+            if (confirmed) {
+                this.submit();
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
