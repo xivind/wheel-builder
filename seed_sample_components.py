@@ -20,24 +20,40 @@ def seed_components():
     # Seed Hubs
     hubs_data = [
         {"make": "Shimano", "model": "Alfine SG-S700", "hub_type": "rear", "old": 135,
-         "left_flange_diameter": 93, "right_flange_diameter": 93,
-         "left_flange_offset": 38, "right_flange_offset": 43.5, "spoke_hole_diameter": 2.9,
+         "left_flange_diameter": 92.6, "right_flange_diameter": 92.6,
+         "left_flange_offset": 25.5, "right_flange_offset": 31.8, "spoke_hole_diameter": 2.9,
          "number_of_spokes": 36},
-        {"make": "DT Swiss", "model": "350", "hub_type": "front", "old": 100,
-         "left_flange_diameter": 58, "right_flange_diameter": 58,
-         "left_flange_offset": 32, "right_flange_offset": 32, "spoke_hole_diameter": 2.6,
+         {"make": "Shimano", "model": "Alfine SG-S700", "hub_type": "rear", "old": 135,
+         "left_flange_diameter": 92.6, "right_flange_diameter": 92.6,
+         "left_flange_offset": 25.5, "right_flange_offset": 31.8, "spoke_hole_diameter": 2.9,
          "number_of_spokes": 32},
-        {"make": "Hope", "model": "Pro 4", "hub_type": "front", "old": 100,
-         "left_flange_diameter": 56, "right_flange_diameter": 56,
-         "left_flange_offset": 30, "right_flange_offset": 30, "spoke_hole_diameter": 2.5,
+         {"make": "Shimano", "model": "DH-UR708-3D", "hub_type": "front", "old": 100,
+         "left_flange_diameter": 61, "right_flange_diameter": 61,
+         "left_flange_offset": 29.5, "right_flange_offset": 22.5, "spoke_hole_diameter": 2.0,
+         "number_of_spokes": 36},
+         {"make": "Shimano", "model": "DH-UR708-3D", "hub_type": "front", "old": 100,
+         "left_flange_diameter": 61, "right_flange_diameter": 61,
+         "left_flange_offset": 29.5, "right_flange_offset": 22.5, "spoke_hole_diameter": 2.0,
          "number_of_spokes": 32},
-        {"make": "Shimano", "model": "Ultegra", "hub_type": "rear", "old": 130,
-         "left_flange_diameter": 46, "right_flange_diameter": 58,
-         "left_flange_offset": 35, "right_flange_offset": 40.5, "spoke_hole_diameter": 2.5,
+         {"make": "Shimano", "model": "XT FH-M756A", "hub_type": "rear", "old": 135,
+         "left_flange_diameter": 61, "right_flange_diameter": 61,
+         "left_flange_offset": 34, "right_flange_offset": 23.4, "spoke_hole_diameter": 2.6,
+         "number_of_spokes": 36},
+         {"make": "Shimano", "model": "XT FH-M756A", "hub_type": "rear", "old": 135,
+         "left_flange_diameter": 61, "right_flange_diameter": 61,
+         "left_flange_offset": 34, "right_flange_offset": 23.4, "spoke_hole_diameter": 2.6,
          "number_of_spokes": 32},
-        {"make": "Phil Wood", "model": "Track", "hub_type": "rear", "old": 120,
-         "left_flange_diameter": 52, "right_flange_diameter": 52,
-         "left_flange_offset": 28, "right_flange_offset": 28, "spoke_hole_diameter": 2.6,
+         {"make": "Hope", "model": "Pro 4 Boost", "hub_type": "front", "old": 110,
+         "left_flange_diameter": 57, "right_flange_diameter": 57,
+         "left_flange_offset": 30, "right_flange_offset": 22, "spoke_hole_diameter": 2.6,
+         "number_of_spokes": 32},
+         {"make": "Shimano", "model": "Deore HB-M6000", "hub_type": "front", "old": 100,
+         "left_flange_diameter": 44, "right_flange_diameter": 44,
+         "left_flange_offset": 24.5, "right_flange_offset": 35.7, "spoke_hole_diameter": 2.6,
+         "number_of_spokes": 36},
+         {"make": "Shimano", "model": "Deore HB-M6000", "hub_type": "front", "old": 100,
+         "left_flange_diameter": 44, "right_flange_diameter": 44,
+         "left_flange_offset": 24.5, "right_flange_offset": 35.7, "spoke_hole_diameter": 2.6,
          "number_of_spokes": 32},
     ]
 
@@ -46,16 +62,18 @@ def seed_components():
 
     # Seed Rims
     rims_data = [
-        {"make": "Ryde", "model": "Andra 30", "rim_type": "symmetric", "erd": 605.4,
-         "osb": 0, "inner_width": 20, "outer_width": 30, "holes": 36, "material": "aluminum"},
-        {"make": "Mavic", "model": "Open Pro", "rim_type": "symmetric", "erd": 610,
-         "osb": 0, "inner_width": 17, "outer_width": 23, "holes": 32, "material": "aluminum"},
-        {"make": "DT Swiss", "model": "XM 481", "rim_type": "symmetric", "erd": 597,
-         "osb": 0, "inner_width": 25, "outer_width": 30, "holes": 32, "material": "aluminum"},
-        {"make": "Stan's", "model": "Grail", "rim_type": "symmetric", "erd": 589,
-         "osb": 0, "inner_width": 21, "outer_width": 30, "holes": 28, "material": "aluminum"},
-        {"make": "H+Son", "model": "Archetype", "rim_type": "symmetric", "erd": 602,
-         "osb": 0, "inner_width": 17, "outer_width": 23, "holes": 32, "material": "aluminum"},
+        {"make": "DT Swiss", "model": "535", "rim_type": "symmetric", "erd": 600,
+         "osb": 0, "inner_width": 19, "outer_width": 24, "holes": 36, "material": "aluminum"},
+         {"make": "DT Swiss", "model": "535", "rim_type": "symmetric", "erd": 600,
+         "osb": 0, "inner_width": 19, "outer_width": 24, "holes": 32, "material": "aluminum"},
+         {"make": "Mavic", "model": "A719", "rim_type": "symmetric", "erd": 604,
+         "osb": 0, "inner_width": 19, "outer_width": 24.5, "holes": 36, "material": "aluminum"},
+         {"make": "Mavic", "model": "A719", "rim_type": "symmetric", "erd": 604,
+         "osb": 0, "inner_width": 19, "outer_width": 24.5, "holes": 32, "material": "aluminum"},
+         {"make": "Ryde", "model": "Andra 30", "rim_type": "symmetric", "erd": 605.4,
+         "osb": 0, "inner_width": 19, "outer_width": 25, "holes": 36, "material": "aluminum"},
+         {"make": "Mavic", "model": "XM 1030", "rim_type": "symmetric", "erd": 598,
+         "osb": 0, "inner_width": 30, "outer_width": 34.5, "holes": 32, "material": "aluminum"},
     ]
 
     for rim_data in rims_data:
@@ -87,11 +105,10 @@ def seed_components():
 
     # Create sample spokes using spoke types
     spokes_data = [
-        {"spoke_type_id": steel_round_2mm.id, "length": 282} if steel_round_2mm else None,
         {"spoke_type_id": steel_round_2mm.id, "length": 286} if steel_round_2mm else None,
-        {"spoke_type_id": steel_round_18mm.id, "length": 282} if steel_round_18mm else None,
-        {"spoke_type_id": steel_round_18mm.id, "length": 284} if steel_round_18mm else None,
-        {"spoke_type_id": titanium_round_2mm.id, "length": 282} if titanium_round_2mm else None,
+        {"spoke_type_id": steel_round_2mm.id, "length": 285} if steel_round_2mm else None,
+        {"spoke_type_id": steel_round_18mm.id, "length": 286} if steel_round_18mm else None,
+        {"spoke_type_id": steel_round_18mm.id, "length": 285} if steel_round_18mm else None,
     ]
 
     # Filter out None entries and create spokes
@@ -105,9 +122,9 @@ def seed_components():
     # Seed Nipples
     nipples_data = [
         {"material": "Brass", "diameter": 2.0, "length": 12, "color": "silver"},
-        {"material": "Aluminum", "diameter": 2.0, "length": 12, "color": "black"},
         {"material": "Brass", "diameter": 2.0, "length": 14, "color": "silver"},
-        {"material": "Aluminum", "diameter": 2.0, "length": 12, "color": "red"},
+        {"material": "Aluminum", "diameter": 2.0, "length": 12, "color": "anodized black"},
+        {"material": "Aluminum", "diameter": 2.0, "length": 12, "color": "anodized red"},
     ]
 
     for nipple_data in nipples_data:

@@ -4,6 +4,10 @@ A self-hosted web application to help bicycle wheel builders select components, 
 
 ![Gas Gauge Logo](static/img/wheelbuilder.png)
 
+## ⚠️ Disclaimer
+
+**This is a hobby project for wheel building enthusiasts.** Not affiliated with Park Tool or any manufacturers. Always double-check calculations with professional tools and consult experienced wheel builders for critical builds.
+
 ## Features
 
 - **Component Library Management**: Add, edit, and manage hubs, rims, spokes, and nipples with automatic locking to preserve build history

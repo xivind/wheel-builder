@@ -105,3 +105,22 @@ h6 {
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
 }
+
+/* Disclaimer Footer */
+.disclaimer-footer {
+    margin: 3rem 0 2rem;
+}
+
+.disclaimer-footer .container {
+    background-color: #d8a59a;
+    border: 1px solid #c9968a;
+    border-radius: 12px;
+    color: #3d2823;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    padding: 1rem 1.5rem;
+}
+
+.disclaimer-footer small {
+    opacity: 0.95;
+}
