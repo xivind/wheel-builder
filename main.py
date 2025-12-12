@@ -298,7 +298,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
                 # Organize readings by side and spoke number, adding deviation percentage
                 for reading in readings:
                     # Calculate deviation percentage from side average
-                    deviation_pct = 0
+                    deviation_pct = None
                     if reading.estimated_tension_kgf is not None and stats_left and stats_right:
                         avg = stats_left['average'] if reading.side == 'left' else stats_right['average']
                         if avg > 0:
@@ -309,7 +309,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
                         'kgf': reading.estimated_tension_kgf,
                         'range_status': reading.range_status,
                         'avg_deviation_status': reading.average_deviation_status,
-                        'deviation_pct': round(deviation_pct, 1)
+                        'deviation_pct': round(deviation_pct, 1) if deviation_pct is not None else None
                     }
 
                     if reading.side == 'left':
@@ -389,7 +389,7 @@ async def update_build_route(
     nipple_id: Optional[str] = Form(None),
     lacing_pattern: Optional[str] = Form(None),
     comments: Optional[str] = Form(None),
-    status: Optional[str] = Form("draft")
+    status: Optional[str] = Form(None)
 ):
     """Handle build update."""
     try:
@@ -401,6 +401,7 @@ async def update_build_route(
         nipple_id = empty_to_none(nipple_id)
         lacing_pattern = empty_to_none(lacing_pattern)
         comments = empty_to_none(comments)
+        status = empty_to_none(status)
 
         # Auto-compute spoke_count from rim if rim is selected
         spoke_count = None
@@ -421,19 +422,24 @@ async def update_build_route(
                         "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
                     }, status_code=400)
 
-        success = update_wheel_build(
-            build_id=build_id,
-            name=name,
-            hub_id=hub_id,
-            rim_id=rim_id,
-            spoke_left_id=spoke_left_id,
-            spoke_right_id=spoke_right_id,
-            nipple_id=nipple_id,
-            lacing_pattern=lacing_pattern,
-            spoke_count=spoke_count,
-            comments=comments,
-            status=status
-        )
+        # Build update parameters
+        update_params = {
+            'name': name,
+            'hub_id': hub_id,
+            'rim_id': rim_id,
+            'spoke_left_id': spoke_left_id,
+            'spoke_right_id': spoke_right_id,
+            'nipple_id': nipple_id,
+            'lacing_pattern': lacing_pattern,
+            'spoke_count': spoke_count,
+            'comments': comments
+        }
+
+        # Only include status if explicitly provided
+        if status is not None:
+            update_params['status'] = status
+
+        success = update_wheel_build(build_id=build_id, **update_params)
 
         if success:
             logger.info(f"Updated build: {build_id}")
@@ -906,7 +912,7 @@ async def auto_save_tension_reading(
         quality_status = determine_quality_status(analysis, tension_range)
 
         # Calculate deviation percentage for the current reading
-        current_deviation_pct = 0
+        current_deviation_pct = None
         if estimated_tension_kgf is not None:
             avg = stats_left['average'] if side == 'left' else stats_right['average']
             if avg > 0:
@@ -917,7 +923,7 @@ async def auto_save_tension_reading(
         readings_right = {}
         for reading in readings:
             # Calculate deviation percentage from side average
-            deviation_pct = 0
+            deviation_pct = None
             if reading.estimated_tension_kgf is not None:
                 avg = stats_left['average'] if reading.side == 'left' else stats_right['average']
                 if avg > 0:
@@ -928,7 +934,7 @@ async def auto_save_tension_reading(
                 'kgf': reading.estimated_tension_kgf,
                 'range_status': reading.range_status,
                 'avg_deviation_status': reading.average_deviation_status,
-                'deviation_pct': round(deviation_pct, 1)
+                'deviation_pct': round(deviation_pct, 1) if deviation_pct is not None else None
             }
             if reading.side == 'left':
                 readings_left[reading.spoke_number] = reading_data
@@ -943,7 +949,7 @@ async def auto_save_tension_reading(
             "kgf": estimated_tension_kgf,
             "range_status": range_status,
             "avg_deviation_status": avg_deviation_status,
-            "deviation_pct": round(current_deviation_pct, 1),
+            "deviation_pct": round(current_deviation_pct, 1) if current_deviation_pct is not None else None,
             "stats_left": stats_left,
             "stats_right": stats_right,
             "quality_status": quality_status,

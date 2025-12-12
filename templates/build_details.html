@@ -115,6 +115,14 @@
                             <span class="text-muted">Right Flange Ø:</span>
                             <span class="float-end fw-bold">{{ hub.right_flange_diameter }}mm</span>
                         </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Left Flange Offset:</span>
+                            <span class="float-end fw-bold">{{ hub.left_flange_offset }}mm</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted">Right Flange Offset:</span>
+                            <span class="float-end fw-bold">{{ hub.right_flange_offset }}mm</span>
+                        </div>
                         {% if hub.number_of_spokes %}
                         <div class="mb-2">
                             <span class="text-muted">Number of Spokes:</span>
@@ -530,6 +538,8 @@
                                                 {% else %}
                                                 <span class="badge bg-danger">> 20%</span>
                                                 {% endif %}
+                                            {% elif readings_left.get(i, {}).get('tm_reading') %}
+                                                <span class="badge bg-secondary">Unknown</span>
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -648,6 +658,8 @@
                                                 {% else %}
                                                 <span class="badge bg-danger">> 20%</span>
                                                 {% endif %}
+                                            {% elif readings_right.get(i, {}).get('tm_reading') %}
+                                                <span class="badge bg-secondary">Unknown</span>
                                             {% else %}
                                                 -
                                             {% endif %}

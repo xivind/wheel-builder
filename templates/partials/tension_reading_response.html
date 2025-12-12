@@ -35,6 +35,8 @@
         {% else %}
         <span class="badge bg-danger">> 20%</span>
         {% endif %}
+    {% elif kgf is none %}
+        <span class="badge bg-secondary">Unknown</span>
     {% else %}
     -
     {% endif %}
@@ -158,6 +160,8 @@
         {% else %}
         <span class="badge bg-danger">> 20%</span>
         {% endif %}
+    {% elif reading.kgf is none %}
+        <span class="badge bg-secondary">Unknown</span>
     {% else %}
     -
     {% endif %}
@@ -178,6 +182,8 @@
         {% else %}
         <span class="badge bg-danger">> 20%</span>
         {% endif %}
+    {% elif reading.kgf is none %}
+        <span class="badge bg-secondary">Unknown</span>
     {% else %}
     -
     {% endif %}
