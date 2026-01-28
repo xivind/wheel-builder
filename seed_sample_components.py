@@ -74,6 +74,10 @@ def seed_components():
          "osb": 0, "inner_width": 19, "outer_width": 25, "holes": 36, "material": "aluminum"},
          {"make": "Mavic", "model": "XM 1030", "rim_type": "symmetric", "erd": 598,
          "osb": 0, "inner_width": 30, "outer_width": 34.5, "holes": 32, "material": "aluminum"},
+         {"make": "Mavic", "model": "A319", "rim_type": "symmetric", "erd": 604,
+         "osb": 0, "inner_width": 19, "outer_width": 24.5, "holes": 36, "material": "aluminum"},
+         {"make": "Mavic", "model": "A319", "rim_type": "symmetric", "erd": 604,
+         "osb": 0, "inner_width": 19, "outer_width": 24.5, "holes": 32, "material": "aluminum"},
     ]
 
     for rim_data in rims_data:
