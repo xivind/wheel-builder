@@ -6,6 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Wheel Builder is a self-hosted web application for bicycle wheel builders to select components, calculate spoke lengths, track spoke tension measurements, and visualize build quality over time. It helps wheelbuilders ensure proper spoke tension and maintain comprehensive build records.
 
+## Working Principles
+
+Behavioral guidelines to reduce common LLM coding mistakes, adapted from [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills/blob/main/CLAUDE.md). They bias toward caution over speed - for trivial tasks, use judgment.
+
+1. **Think before coding.** State assumptions explicitly. If a request has several plausible interpretations, present them instead of picking one silently. If something is unclear, stop and ask. If a simpler approach exists, say so - push back when warranted.
+2. **Simplicity first.** Write the minimum code that solves the problem: no features beyond what was asked, no abstractions for single-use code, no configurability nobody requested, no error handling for impossible scenarios. If 200 lines could be 50, rewrite it.
+3. **Surgical changes.** Every changed line should trace directly to the request. Don't "improve" adjacent code, comments or formatting, and don't refactor what isn't broken. Match existing style. Remove imports/variables/functions your own change made unused; mention pre-existing dead code instead of deleting it.
+4. **Goal-driven execution.** Turn the task into verifiable success criteria before starting (e.g. "fix the bug" -> "write a test that reproduces it, then make it pass"), and for multi-step tasks state a short plan with a verification check per step. There is no automated test suite yet - verify by running the app locally (see Running the App) and checking the relevant cases under Testing below. If a change deserves a regression test, propose adding one rather than adding test infrastructure silently.
+
 ## Technology Stack
 
 - **Backend:** FastAPI, Uvicorn, Peewee ORM, SQLite
