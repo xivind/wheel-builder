@@ -90,15 +90,13 @@ async def dashboard(request: Request):
             if build.status in stats:
                 stats[build.status] += 1
 
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "dashboard.html", {
             "builds": builds,
             "stats": stats
         })
     except Exception as e:
         logger.error(f"Error loading dashboard: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to load dashboard. Please try again later."
         }, status_code=500)
 
@@ -117,8 +115,7 @@ async def build_form_partial(request: Request, id: str = None):
         spokes = get_all_spokes()
         nipples = get_all_nipples()
 
-        return templates.TemplateResponse("partials/build_form.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/build_form.html", {
             "build": build,
             "hubs": hubs,
             "rims": rims,
@@ -166,8 +163,7 @@ async def create_build(
 
             if hub and hub.number_of_spokes and rim and rim.holes:
                 if hub.number_of_spokes != rim.holes:
-                    return templates.TemplateResponse("error.html", {
-                        "request": request,
+                    return templates.TemplateResponse(request, "error.html", {
                         "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
                     }, status_code=400)
 
@@ -189,8 +185,7 @@ async def create_build(
         return RedirectResponse(url=f"/build/{build.id}", status_code=303)
     except Exception as e:
         logger.error(f"Error creating wheel build: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to create wheel build. Please try again later."
         }, status_code=500)
 
@@ -225,8 +220,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
         # Fetch the build
         build = get_wheel_build_by_id(build_id)
         if not build:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Build not found."
             }, status_code=404)
 
@@ -317,8 +311,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
                     else:
                         readings_right[reading.spoke_number] = reading_data
 
-        return templates.TemplateResponse("build_details.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "build_details.html", {
             "build": build,
             "hub": hub,
             "rim": rim,
@@ -340,8 +333,7 @@ async def build_details(request: Request, build_id: str, session: str = None):
         })
     except Exception as e:
         logger.error(f"Error loading build details: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to load build details. Please try again later."
         }, status_code=500)
 
@@ -351,8 +343,7 @@ async def edit_build_form(request: Request, build_id: str):
     try:
         build = get_wheel_build_by_id(build_id)
         if not build:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Build not found."
             }, status_code=404)
 
@@ -362,8 +353,7 @@ async def edit_build_form(request: Request, build_id: str):
         spokes = get_all_spokes()
         nipples = get_all_nipples()
 
-        return templates.TemplateResponse("build_edit.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "build_edit.html", {
             "build": build,
             "hubs": hubs,
             "rims": rims,
@@ -372,8 +362,7 @@ async def edit_build_form(request: Request, build_id: str):
         })
     except Exception as e:
         logger.error(f"Error loading build edit form: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to load build edit form. Please try again later."
         }, status_code=500)
 
@@ -417,8 +406,7 @@ async def update_build_route(
 
             if hub and hub.number_of_spokes and rim and rim.holes:
                 if hub.number_of_spokes != rim.holes:
-                    return templates.TemplateResponse("error.html", {
-                        "request": request,
+                    return templates.TemplateResponse(request, "error.html", {
                         "error_message": f"Spoke count mismatch: Hub has {hub.number_of_spokes} holes, but rim has {rim.holes} holes. These must match."
                     }, status_code=400)
 
@@ -445,14 +433,12 @@ async def update_build_route(
             logger.info(f"Updated build: {build_id}")
             return RedirectResponse(url=f"/build/{build_id}", status_code=303)
         else:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Failed to update build. Please try again."
             }, status_code=500)
     except Exception as e:
         logger.error(f"Error updating build: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": f"Error updating build: {str(e)}"
         }, status_code=500)
 
@@ -515,8 +501,7 @@ async def tension_session_form_partial(request: Request, build_id: str, session_
             if not session:
                 return HTMLResponse("<div class='alert alert-danger'>Session not found.</div>", status_code=404)
 
-        return templates.TemplateResponse("partials/tension_session_form.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/tension_session_form.html", {
             "build_id": build_id,
             "today_date": today_date,
             "session": session  # Will be None for create mode, populated for edit mode
@@ -538,8 +523,7 @@ async def create_session_route(
         # Verify the build exists
         build = get_wheel_build_by_id(build_id)
         if not build:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Build not found."
             }, status_code=404)
 
@@ -548,8 +532,7 @@ async def create_session_route(
             session_date_obj = datetime.strptime(session_date, '%Y-%m-%d')
         except ValueError:
             logger.error(f"Invalid date format: {session_date}")
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Invalid date format."
             }, status_code=400)
 
@@ -570,8 +553,7 @@ async def create_session_route(
         return RedirectResponse(url=f"/build/{build_id}?session={session.id}#tension-tracking", status_code=303)
     except Exception as e:
         logger.error(f"Error creating tension session: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to create tension session. Please try again later."
         }, status_code=500)
 
@@ -593,8 +575,7 @@ async def update_session_route(
 
         # Validate required fields
         if not session_name or not session_date:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Session name and date are required."
             }, status_code=400)
 
@@ -603,8 +584,7 @@ async def update_session_route(
             session_date_obj = datetime.strptime(session_date, '%Y-%m-%d')
         except ValueError:
             logger.error(f"Invalid date format: {session_date}")
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Invalid date format."
             }, status_code=400)
 
@@ -620,8 +600,7 @@ async def update_session_route(
         )
 
         if not session:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Session not found."
             }, status_code=404)
 
@@ -631,8 +610,7 @@ async def update_session_route(
         return RedirectResponse(url=f"/build/{build_id}?session={session_id}#tension-tracking", status_code=303)
     except Exception as e:
         logger.error(f"Error updating tension session: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to update tension session. Please try again later."
         }, status_code=500)
 
@@ -649,16 +627,14 @@ async def delete_session_route(
         # Verify the build exists
         build = get_wheel_build_by_id(build_id)
         if not build:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Build not found."
             }, status_code=404)
 
         # Verify the session exists and belongs to this build
         session = get_tension_session_by_id(session_id)
         if not session or session.wheel_build_id != build_id:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Session not found."
             }, status_code=404)
 
@@ -668,14 +644,12 @@ async def delete_session_route(
             # Redirect back to build details, staying in the tension tracking section
             return RedirectResponse(url=f"/build/{build_id}#tension-tracking", status_code=303)
         else:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Failed to delete session."
             }, status_code=500)
     except Exception as e:
         logger.error(f"Error deleting tension session: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to delete tension session. Please try again later."
         }, status_code=500)
 
@@ -742,8 +716,7 @@ async def auto_save_tension_reading(
                     readings_right[reading.spoke_number] = reading_data
 
             # Return OOB swaps with cleared values
-            return templates.TemplateResponse("partials/tension_reading_clear.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "partials/tension_reading_clear.html", {
                 "spoke_num": spoke_num,
                 "side": side,
                 "stats_left": stats_left,
@@ -942,8 +915,7 @@ async def auto_save_tension_reading(
                 readings_right[reading.spoke_number] = reading_data
 
         # Return HTML fragments with out-of-band swaps
-        return templates.TemplateResponse("partials/tension_reading_response.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/tension_reading_response.html", {
             "spoke_num": spoke_num,
             "side": side,
             "kgf": estimated_tension_kgf,
@@ -993,8 +965,7 @@ async def config_page(request: Request):
             nipple.locked = len(builds_using) > 0
             nipple.used_by_builds = builds_using
 
-        return templates.TemplateResponse("config.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "config.html", {
             "hubs": hubs,
             "rims": rims,
             "spokes": spokes,
@@ -1002,8 +973,7 @@ async def config_page(request: Request):
         })
     except Exception as e:
         logger.error(f"Error loading configuration page: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to load configuration page. Please try again later."
         }, status_code=500)
 
@@ -1024,8 +994,7 @@ async def hub_form_partial(request: Request, id: str = None):
             used_by_builds = get_builds_using_hub(id)
             locked = len(used_by_builds) > 0
 
-        return templates.TemplateResponse("partials/hub_form.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/hub_form.html", {
             "hub": hub,
             "locked": locked,
             "used_by_builds": used_by_builds
@@ -1051,8 +1020,7 @@ async def rim_form_partial(request: Request, id: str = None):
             used_by_builds = get_builds_using_rim(id)
             locked = len(used_by_builds) > 0
 
-        return templates.TemplateResponse("partials/rim_form.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/rim_form.html", {
             "rim": rim,
             "locked": locked,
             "used_by_builds": used_by_builds
@@ -1079,8 +1047,7 @@ async def spoke_form_partial(request: Request, id: str = None):
             used_by_builds = get_builds_using_spoke(id)
             locked = len(used_by_builds) > 0
 
-        return templates.TemplateResponse("partials/spoke_form.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/spoke_form.html", {
             "spoke": spoke,
             "locked": locked,
             "used_by_builds": used_by_builds,
@@ -1107,8 +1074,7 @@ async def nipple_form_partial(request: Request, id: str = None):
             used_by_builds = get_builds_using_nipple(id)
             locked = len(used_by_builds) > 0
 
-        return templates.TemplateResponse("partials/nipple_form.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "partials/nipple_form.html", {
             "nipple": nipple,
             "locked": locked,
             "used_by_builds": used_by_builds
@@ -1149,8 +1115,7 @@ async def create_hub_route(
         return RedirectResponse(url="/config#hubs", status_code=303)
     except Exception as e:
         logger.error(f"Error creating hub: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to create hub. Please try again later."
         }, status_code=500)
 
@@ -1227,8 +1192,7 @@ async def create_rim_route(
         return RedirectResponse(url="/config#rims", status_code=303)
     except Exception as e:
         logger.error(f"Error creating rim: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to create rim. Please try again later."
         }, status_code=500)
 
@@ -1285,16 +1249,14 @@ async def create_spoke_route(
         spoke_type = get_spoke_type_by_id(spoke_type_id)
         if not spoke_type:
             logger.error(f"Invalid spoke_type_id: {spoke_type_id}")
-            return templates.TemplateResponse("partials/spoke_form.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "partials/spoke_form.html", {
                 "error": "Invalid spoke type selected",
                 "spoke_types": get_all_spoke_types()
             }, status_code=400)
 
         # Validate length
         if length <= 0:
-            return templates.TemplateResponse("partials/spoke_form.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "partials/spoke_form.html", {
                 "error": "Length must be greater than 0",
                 "spoke_types": get_all_spoke_types()
             }, status_code=400)
@@ -1306,8 +1268,7 @@ async def create_spoke_route(
         return RedirectResponse(url="/config#spokes", status_code=303)
     except Exception as e:
         logger.error(f"Error creating spoke: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to create spoke. Please try again later."
         }, status_code=500)
 
@@ -1321,8 +1282,7 @@ async def update_spoke_route(
     try:
         spoke = get_spoke_by_id(spoke_id)
         if not spoke:
-            return templates.TemplateResponse("error.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "error.html", {
                 "error_message": "Spoke not found"
             }, status_code=404)
 
@@ -1330,8 +1290,7 @@ async def update_spoke_route(
         builds_using = get_builds_using_spoke(spoke_id)
         if builds_using:
             logger.warning(f"Cannot update spoke {spoke_id}: used by {len(builds_using)} build(s)")
-            return templates.TemplateResponse("partials/spoke_form.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "partials/spoke_form.html", {
                 "spoke": spoke,
                 "locked": True,
                 "used_by_builds": builds_using,
@@ -1341,8 +1300,7 @@ async def update_spoke_route(
 
         # Validate length
         if length <= 0:
-            return templates.TemplateResponse("partials/spoke_form.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "partials/spoke_form.html", {
                 "spoke": spoke,
                 "spoke_types": get_all_spoke_types(),
                 "error": "Length must be greater than 0"
@@ -1377,8 +1335,7 @@ async def create_nipple_route(
         return RedirectResponse(url="/config#nipples", status_code=303)
     except Exception as e:
         logger.error(f"Error creating nipple: {e}")
-        return templates.TemplateResponse("error.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "error.html", {
             "error_message": "Unable to create nipple. Please try again later."
         }, status_code=500)
 
