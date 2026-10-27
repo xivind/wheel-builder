@@ -1,5 +1,0 @@
-fastapi
-uvicorn
-peewee
-jinja2
-python-multipart

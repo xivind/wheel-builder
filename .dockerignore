@@ -4,6 +4,7 @@ __pycache__/
 .git/
 .gitignore
 .worktrees/
+.venv/
 *.md
 .env
 *.db

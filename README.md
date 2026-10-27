@@ -199,9 +199,9 @@ docker start wheel-builder
 
 ### Local Development (without Docker)
 
-1. Install dependencies:
+1. Install [uv](https://docs.astral.sh/uv/) and install dependencies from `uv.lock` (creates a virtual environment in `.venv`; activate it before running uvicorn):
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 2. Run the application:
@@ -236,7 +236,8 @@ wheel-builder/
 ├── database_model.py            # ORM models
 ├── utils.py                     # Helper functions
 ├── seed_sample_components.py    # Sample data population
-├── requirements.txt             # Python dependencies
+├── pyproject.toml               # Python dependencies
+├── uv.lock                      # Locked dependency versions
 ├── Dockerfile                   # Docker image definition
 ├── create-container-wheelbuilder.sh  # Deployment script
 ├── static/

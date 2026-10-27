@@ -59,8 +59,8 @@ docker start wheel-builder
 
 **Without Docker:**
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (creates .venv from uv.lock; add packages with `uv add`, never edit uv.lock by hand)
+uv sync
 
 # Development with hot reload (detects code changes automatically)
 # Note: You may see "1 change detected" messages due to log files being written.
