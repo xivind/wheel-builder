@@ -45,6 +45,9 @@ graphify-out/.graphify_root
 # graphify - install-time safety backup, not needed long-term
 .claude/settings.json.graphify-bak
 
+# graphify - rebuildable incremental build cache, not worth tracking
+graphify-out/cache/ast/
+
 # graphify - dated auto-backup, created automatically before overwriting a
 # graph that cost real LLM tokens or has curated labels; git history already
 # covers this, so committing it only accumulates clutter
