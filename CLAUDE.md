@@ -306,13 +306,7 @@ Comprehensive spoke type definitions with tension meter calibration:
 
 ### Backup
 
-```bash
-# Use the provided backup script
-./backup_db.sh
-
-# Manual backup
-cp ~/code/container_data/wheel_builder.db ~/backup/wheel_builder_$(date +%Y%m%d).db
-```
+Backups run nightly through `backup-orchestrator` in the production repo. See its README for restores.
 
 ### Health Check
 

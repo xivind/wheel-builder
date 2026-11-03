@@ -178,22 +178,7 @@ For local development, logs appear in both the console and `~/code/container_dat
 
 ## Backup
 
-Use the provided backup script:
-```bash
-./backup_db.sh
-```
-
-Or manually backup your data:
-```bash
-cp ~/code/container_data/wheel_builder.db ~/backup/wheel_builder_$(date +%Y%m%d).db
-```
-
-To restore from backup:
-```bash
-docker stop wheel-builder
-cp ~/backup/wheel_builder_20250115.db ~/code/container_data/wheel_builder.db
-docker start wheel-builder
-```
+Backups run nightly through `backup-orchestrator` in the production repo. See its README for restores.
 
 ## Development
 
