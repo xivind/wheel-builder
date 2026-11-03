@@ -170,15 +170,11 @@ docker logs -f wheel-builder  # Follow in real-time
 tail -f ~/code/container_data/logs/wheel_builder.log
 cat ~/code/container_data/logs/wheel_builder.log
 
-# Backup log files (rotated)
+# Rotated log files
 ls -lh ~/code/container_data/logs/
 ```
 
 For local development, logs appear in both the console and `~/code/container_data/logs/wheel_builder.log`.
-
-## Backup
-
-Backups run nightly through `backup-orchestrator` in the production repo. See its README for restores.
 
 ## Development
 

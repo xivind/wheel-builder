@@ -304,10 +304,6 @@ Comprehensive spoke type definitions with tension meter calibration:
 - Sample components populated by `seed_components()` in main.py startup
 - Spoke types and conversion table loaded by `seed_spoke_types.py`
 
-### Backup
-
-Backups run nightly through `backup-orchestrator` in the production repo. See its README for restores.
-
 ### Health Check
 
 The application includes Docker-based health monitoring:
@@ -363,7 +359,7 @@ The application includes Docker-based health monitoring:
 ## Key Design Decisions
 
 1. **Single-user per instance**: No authentication, simpler deployment
-2. **SQLite**: Lightweight, file-based, easy backup
+2. **SQLite**: Lightweight, file-based
 3. **Component locking**: Preserve build history integrity
 4. **Multi-session tracking**: Track tension changes over time (initial, after truing, after riding)
 5. **Park Tool TM-1 integration**: Industry-standard tension meter calibration
