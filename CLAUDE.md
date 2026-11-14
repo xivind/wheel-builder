@@ -71,19 +71,16 @@ docker start wheel-builder
 # Install dependencies (creates .venv from uv.lock; add packages with `uv add`, never edit uv.lock by hand)
 uv sync
 
-# Activate venv
-source .venv/bin/activate
-
 # Development with hot reload (detects code changes automatically)
 # Note: You may see "1 change detected" messages due to log files being written.
 # This is harmless - uvicorn detects the changes but doesn't actually reload.
-uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
+uv run uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
 
 # Development without hot reload (clean console output, manual restart needed)
-uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
+uv run uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
 
 # Production (same as above, no reload)
-uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
+uv run uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
 ```
 
 The application will be available at `http://localhost:8004`

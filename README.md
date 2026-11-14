@@ -180,7 +180,7 @@ For local development, logs appear in both the console and `~/code/container_dat
 
 ### Local Development (without Docker)
 
-1. Install [uv](https://docs.astral.sh/uv/) and install dependencies from `uv.lock` (creates a virtual environment in `.venv`; activate it before running uvicorn):
+1. Install [uv](https://docs.astral.sh/uv/) and install dependencies from `uv.lock` (creates a virtual environment in `.venv`, which `uv run` uses without activating it):
 ```bash
 uv sync
 ```
@@ -189,13 +189,13 @@ uv sync
 
 **With hot reload (detects code changes automatically):**
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
+uv run uvicorn main:app --host 0.0.0.0 --port 8004 --reload --log-config uvicorn_log_config.ini
 ```
 Note: You may see "1 change detected" messages due to log files being written. This is harmless - uvicorn detects the changes but doesn't actually reload.
 
 **Without hot reload (clean console, manual restart needed):**
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
+uv run uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
 ```
 
 The database will be automatically created at `~/code/container_data/wheel_builder.db` (same location as Docker).
@@ -204,7 +204,7 @@ The database will be automatically created at `~/code/container_data/wheel_build
 
 To use a different database location:
 ```bash
-DATABASE_PATH=/path/to/custom.db uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
+DATABASE_PATH=/path/to/custom.db uv run uvicorn main:app --host 0.0.0.0 --port 8004 --log-config uvicorn_log_config.ini
 ```
 
 ### Project Structure
